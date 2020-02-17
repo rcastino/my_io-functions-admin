@@ -127,15 +127,28 @@ stages:
     jobs:
       - job: deploy
         steps:
+        - task: Cache@2
+          inputs:
+            key: 'yarn | "$(Agent.OS)" | yarn.lock'
+            restoreKeys: |
+              yarn | "$(Agent.OS)"
+              yarn
+            path: $(YARN_CACHE_FOLDER)
+          displayName: Cache Yarn packages
+
+        - script: |
+            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
+          displayName: 'Install node modules'
+
         - task: AzureFunctionApp@1
           inputs:
             azureSubscription: 'Versione di valutazione gratuita(909e9301-d388-4277-947c-277b65681859)'
             appType: 'functionApp'
-            appName: 'mygithubfuncrai2'
+            appName: 'myserverlessfuncrai'
             deployToSlotOrASE: true
             resourceGroupName: 'myResourceGroup'
             slotName: 'staging'
-            package: '$(System.DefaultWorkingDirectory)/**/*.zip'
+            package: '$(System.DefaultWorkingDirectory)/'
             deploymentMethod: 'auto'
 
 #        - task: AzureAppServiceManage@0
