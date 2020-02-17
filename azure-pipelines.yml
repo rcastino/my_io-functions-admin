@@ -120,3 +120,29 @@ stages:
         - bash: |
             bash <(curl -s https://codecov.io/bash)
           displayName: 'Code coverage'
+
+  # D) Deploy to a slot 
+  - stage: Deploy_staging
+    dependsOn: []
+    jobs:
+      - job: deploy
+        steps:
+        - task: AzureFunctionApp@1
+          inputs:
+            azureSubscription: 'Versione di valutazione gratuita(909e9301-d388-4277-947c-277b65681859)'
+            appType: 'functionApp'
+            appName: 'mygithubfuncrai2'
+            deployToSlotOrASE: true
+            resourceGroupName: 'myResourceGroup'
+            slotName: 'staging'
+            package: '$(System.DefaultWorkingDirectory)/**/*.zip'
+            deploymentMethod: 'auto'
+
+#        - task: AzureAppServiceManage@0
+#          inputs:
+#            azureSubscription: 'Versione di valutazione gratuita(909e9301-d388-4277-947c-277b65681859)'
+#            WebAppName: <name of the Function app>
+#            ResourceGroupName: 'myResourceGroup'
+#            SourceSlot: staging
+#            SwapWithProduction: true          
+
