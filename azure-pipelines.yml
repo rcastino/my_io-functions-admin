@@ -147,7 +147,7 @@ stages:
             appName: 'myserverlessfuncrai'
             deployToSlotOrASE: true
             resourceGroupName: 'myResourceGroup'
-            slotName: 'staging'
+            slotName: 'raislot'
             package: '$(System.DefaultWorkingDirectory)/'
             deploymentMethod: 'auto'
 
