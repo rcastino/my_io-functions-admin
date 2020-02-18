@@ -7,6 +7,9 @@
 
 variables:
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
+  AZURE_SUBSCRIPTION1: 'Versione di valutazione gratuita(909e9301-d388-4277-947c-277b65681859)'
+  RESOURCE_GROUP_NAME: 'myResourceGroup'
+  APP_NAME: 'myserverlessfuncrai'
 
 pool:
   vmImage: 'windows-2019'
@@ -142,7 +145,7 @@ stages:
 
         - task: AzureFunctionApp@1
           inputs:
-            azureSubscription: 'Versione di valutazione gratuita(909e9301-d388-4277-947c-277b65681859)'
+            azureSubscription: $(AZURE_SUBSCRIPTION)
             appType: 'functionApp'
             appName: 'myserverlessfuncrai'
             deployToSlotOrASE: true
