@@ -145,6 +145,10 @@ stages:
             yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
           displayName: 'Install node modules'
 
+        - bash: |
+            yarn build
+          displayName: 'Build'
+
         - task: AzureFunctionApp@1
           inputs:
             azureSubscription: '$(AZURE_SUBSCRIPTION)'
