@@ -4,12 +4,14 @@
 # on 'windows' and 'ubuntu' virtual machine images and using the scripts defined
 # in the package.json file. Since we are deploying on Azure functions on Windows
 # runtime, the pipeline is currently configured to use a Windows hosted image.
+#
+# The following variables needs to be defined in the pipeline before running it:
+# - AZURE_SUBSCRIPTION
+# - RESOURCE_GROUP_NAME
+# - APP_NAME
 
 variables:
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
-  AZURE_SUBSCRIPTION1: 'Versione di valutazione gratuita(909e9301-d388-4277-947c-277b65681859)'
-  RESOURCE_GROUP_NAME: 'myResourceGroup'
-  APP_NAME: 'myserverlessfuncrai'
 
 pool:
   vmImage: 'windows-2019'
@@ -145,12 +147,12 @@ stages:
 
         - task: AzureFunctionApp@1
           inputs:
-            azureSubscription: $(AZURE_SUBSCRIPTION)
+            azureSubscription: '$(AZURE_SUBSCRIPTION)'
             appType: 'functionApp'
-            appName: 'myserverlessfuncrai'
+            appName: '$(APP_NAME)'
             deployToSlotOrASE: true
-            resourceGroupName: 'myResourceGroup'
-            slotName: 'raislot'
+            resourceGroupName: '$(RESOURCE_GROUP_NAME)'
+            slotName: 'staging'
             package: '$(System.DefaultWorkingDirectory)/'
             deploymentMethod: 'auto'
 
