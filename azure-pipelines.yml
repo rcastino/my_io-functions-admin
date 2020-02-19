@@ -21,15 +21,15 @@
 variables:
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
 
-trigger:
-  branches:
-    include:
-      - refs/tags/latest
+#trigger:
+#  branches:
+#    include:
+#      - refs/tags/latest
 
-pr:
-  branches:
-    include:
-    - 'master1'
+#pr:
+#  branches:
+#    include:
+#    - 'master1'
 
 pool:
   vmImage: 'windows-2019'
@@ -145,8 +145,9 @@ stages:
           displayName: 'Code coverage'
 
   # D) Deploy to a slot 
-  - stage: Deploy_staging
+  - stage: Deploy_staging_slot
     dependsOn: []
+    condition: false
     jobs:
       - job: deploy
         steps:
@@ -186,3 +187,39 @@ stages:
             SourceSlot: staging
             SwapWithProduction: true
 
+
+  # D) Deploy to STAGING only if there is a push on 'master' branch
+  - stage: Deploy_staging
+    dependsOn: []
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    jobs:
+      - job: prepare_deploy
+        steps:
+        - task: Cache@2
+          inputs:
+            key: 'yarn | "$(Agent.OS)" | yarn.lock'
+            restoreKeys: |
+              yarn | "$(Agent.OS)"
+              yarn
+            path: $(YARN_CACHE_FOLDER)
+          displayName: Cache Yarn packages
+
+        - script: |
+            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
+          displayName: 'Install node modules'
+
+        - bash: |
+            yarn build
+          displayName: 'Build'
+
+      - job: deploy
+        dependsOn: [prepare_deploy]
+        steps:
+          - task: AzureFunctionApp@1
+            inputs:
+              azureSubscription: '$(AZURE_SUBSCRIPTION)'
+              appType: 'functionApp'
+              appName: '$(APP_NAME)'
+              resourceGroupName: '$(RESOURCE_GROUP_NAME)'
+              package: '$(System.DefaultWorkingDirectory)/'
+              deploymentMethod: 'auto'
