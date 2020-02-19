@@ -13,6 +13,11 @@
 variables:
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
 
+trigger:
+  branches:
+    include:
+      - refs/tags/latest
+
 pool:
   vmImage: 'windows-2019'
 
