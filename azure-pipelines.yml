@@ -10,6 +10,14 @@
 # - RESOURCE_GROUP_NAME
 # - APP_NAME
 
+# - AZURE_SP_TENANT="<tenantid>"
+# - AZURE_SP="<service principal id>"
+# - AZURE_SP_PASSWORD="<service principal password>"
+# - AZURE_SUBSCRIPTION_ID="<subscription id>"
+# - PRODUCTION_RESOURCE_GROUP_NAME="<production resource group>"
+# - STAGING_RESOURCE_GROUP_NAME="<staging resource group>"
+# - FUNCTION_APP_NAME="<function app name>"
+
 variables:
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
 
@@ -17,6 +25,11 @@ trigger:
   branches:
     include:
       - refs/tags/latest
+
+pr:
+  branches:
+    include:
+    - 'master1'
 
 pool:
   vmImage: 'windows-2019'
