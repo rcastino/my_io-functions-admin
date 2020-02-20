@@ -38,12 +38,15 @@ pool:
   vmImage: 'windows-2019'
 
 stages:
-  # A) Install modules and build
-  - stage: Build_check
+  # A) Build and code validation
+  - stage: Build
     dependsOn: []
     jobs:
-      - job: compile
+      - job: build_check
+        # A1) Checkout, install module and compile
         steps:
+        - checkout: self
+
         - task: NodeTool@0
           inputs:
             versionSpec: '10.14.1'
@@ -66,73 +69,29 @@ stages:
             yarn build
           displayName: 'Build'
 
-      - job: lint
-        dependsOn: ['compile']
-        steps:
-        - checkout: none
-
+        # A2) Analyze source code to find errors with lint
         - script: |
             yarn lint
           displayName: 'Lint'
 
-
-  # B) Checker and validator tools for static code analysis
-  - stage: Source_check
-    dependsOn: ['Build_check']
-    jobs:
-      # B1) TODO Analyze source code to find errors
-      - job: lint
-        steps:
-        - task: Cache@2
-          condition: false
-          inputs:
-            key: 'yarn | "$(Agent.OS)" | yarn.lock'
-            restoreKeys: |
-              yarn | "$(Agent.OS)"
-              yarn
-            path: $(YARN_CACHE_FOLDER)
-          displayName: Cache Yarn packages
-
-        - script: |
-            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
-          displayName: 'Install node modules'
-
-        - script: |
-            yarn lint
-          displayName: 'Lint'
-
-      # B2) Validate API definition 
-      - job: lint_api
-        condition: false
-        steps:
+        # A3) Validate API definition (lint_api)
         - script: |
             npx oval validate -p openapi/index.yaml
           displayName: 'Validate OpenAPI'
 
-      # B3) Check source code with danger (only when there is a PR)
-      - job: danger
-        condition: variables['DANGER_GITHUB_API_TOKEN']
-        steps:
-        - task: Cache@2
-          inputs:
-            key: 'yarn | "$(Agent.OS)" | yarn.lock'
-            restoreKeys: |
-              yarn | "$(Agent.OS)"
-              yarn
-            path: $(YARN_CACHE_FOLDER)
-          displayName: Cache Yarn packages
-
-        - script: |
-            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
-          displayName: 'Install node modules'
-
-        - bash: |
-            yarn danger ci
+        # A4) Check source code with danger (only when there is a PR)
+        - bash: |            
+            if [[ -z "${DANGER_GITHUB_API_TOKEN}" ]]
+            then
+              echo "skipping..."
+            else
+              yarn danger ci
+            fi
           displayName: 'Danger CI'
 
 
-  # C) Run unit tests
-  - stage: Tests_check
+  # B) Run unit tests
+  - stage: Test
     dependsOn: []
     condition: false
     jobs:
@@ -158,6 +117,7 @@ stages:
         - bash: |
             bash <(curl -s https://codecov.io/bash)
           displayName: 'Code coverage'
+
 
   # D) TODO Deploy to a slot 
   - stage: Deploy_staging_slot
@@ -205,11 +165,24 @@ stages:
 
   # D1) Deploy to STAGING only if there is a push on 'master' branch
   - stage: Deploy_staging
-    dependsOn: []
+    dependsOn:
+    - Build
+    - Test
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
     jobs:
       - job: prepare_deploy
         steps:
+        - bash: |            
+            if [[ -z "${RESOURCE_GROUP_NAME}" ]]
+            then
+              echo "[error] Set up environment variables first if you want to start a new deploy:"
+              echo "[error] variable RESOURCE_GROUP_NAME is missing"
+              exit 1
+            fi
+          displayName: 'TODO Check variables'
+
+        - checkout: self
+
         - task: Cache@2
           inputs:
             key: 'yarn | "$(Agent.OS)" | yarn.lock'
@@ -239,9 +212,12 @@ stages:
               package: '$(System.DefaultWorkingDirectory)/'
               deploymentMethod: 'auto'
 
+
   # D2) Deploy to PRODUCTION only if the 'latest' tag is pushed
   - stage: Deploy_prod
-    dependsOn: []
+    dependsOn:
+    - Build
+    - Test
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/tags/latest'))
     jobs:
       - job: prepare_deploy
