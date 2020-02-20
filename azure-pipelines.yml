@@ -68,7 +68,7 @@ stages:
 
         - task: PublishBuildArtifacts@1
           inputs:
-            pathtoPublish: '$(System.ArtifactsDirectory)/'
+            pathtoPublish: '$(Build.SourcesDirectory)/'
             artifactName: drop
 
 
@@ -86,7 +86,7 @@ stages:
             buildType: 'current'
             downloadType: 'single'
             artifactName: 'drop'
-            downloadPath: '$(System.DefaultWorkingDirectory)/'
+            downloadPath: '$(Build.SourcesDirectory)/'
 
         - task: DownloadPipelineArtifact@2
           inputs:
