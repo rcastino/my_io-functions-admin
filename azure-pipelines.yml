@@ -237,7 +237,8 @@ stages:
         - bash: |            
             if [[ -z "${PRODUCTION_RESOURCE_GROUP_NAME}" ]]
             then
-              echo 'Set up environment variables first if you want to start a new deploy'
+              >&2 echo "Set up environment variables first if you want to start a new deploy:"
+              >&2 echo "variable PRODUCTION_RESOURCE_GROUP_NAME is missing"
               exit 1
             fi
           displayName: 'Check variables'
