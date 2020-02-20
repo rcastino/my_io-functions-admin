@@ -90,10 +90,9 @@ stages:
           displayName: 'Danger CI'
 
 
-  # B) Run unit tests
+  # B) Run unit tests in parallel
   - stage: Test
     dependsOn: []
-    condition: false
     jobs:
       - job: unit_tests
         steps:
