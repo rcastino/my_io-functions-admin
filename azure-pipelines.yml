@@ -74,11 +74,13 @@ stages:
 
   # B) Checker and validator tools for static code analysis
   - stage: Source_check
-    dependsOn: []
+    dependsOn: ['Build_check']
     jobs:
       # B1) NEW Analyze source code to find errors
       - job: lint
         steps:
+        - checkout: null
+
         - task: DownloadPipelineArtifact@2
           inputs:
             artifact: build_result
@@ -111,6 +113,7 @@ stages:
 
       # B2) Validate API definition 
       - job: lint_api
+        condition: false
         steps:
         - script: |
             npx oval validate -p openapi/index.yaml
@@ -141,6 +144,7 @@ stages:
   # C) Run unit tests
   - stage: Tests_check
     dependsOn: []
+    condition: false
     jobs:
       - job: unit_tests
         steps:
