@@ -67,7 +67,10 @@ stages:
           displayName: 'Build'
 
       - job: lint
+        dependsOn: ['compile']
         steps:
+        - checkout: none
+
         - script: |
             yarn lint
           displayName: 'Lint'
