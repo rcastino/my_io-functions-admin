@@ -66,15 +66,33 @@ stages:
             yarn build
           displayName: 'Build'
 
+        - task: PublishPipelineArtifact@1
+          inputs:
+            path: $(System.DefaultWorkingDirectory)/
+            artifact: build_result
+
 
   # B) Checker and validator tools for static code analysis
   - stage: Source_check
     dependsOn: []
     jobs:
-      # B1) Analyze source code to find errors
+      # B1) NEW Analyze source code to find errors
       - job: lint
         steps:
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            artifact: build_result
+
+        - script: |
+            yarn lint
+          displayName: 'Lint'
+
+      # B1) TODO Analyze source code to find errors
+      - job: lint_orig
+        condition: false
+        steps:
         - task: Cache@2
+          condition: false
           inputs:
             key: 'yarn | "$(Agent.OS)" | yarn.lock'
             restoreKeys: |
@@ -147,7 +165,7 @@ stages:
             bash <(curl -s https://codecov.io/bash)
           displayName: 'Code coverage'
 
-  # D) Deploy to a slot 
+  # D) TODO Deploy to a slot 
   - stage: Deploy_staging_slot
     dependsOn: []
     condition: false
@@ -237,12 +255,14 @@ stages:
         - bash: |            
             if [[ -z "${PRODUCTION_RESOURCE_GROUP_NAME}" ]]
             then
-              >&2 echo "Set up environment variables first if you want to start a new deploy:"
-              >&2 echo "variable PRODUCTION_RESOURCE_GROUP_NAME is missing"
+              echo "[error] Set up environment variables first if you want to start a new deploy:"
+              echo "[error] variable PRODUCTION_RESOURCE_GROUP_NAME is missing"
               exit 1
             fi
           displayName: 'Check variables'
+
         - checkout: self
+        
         - task: Cache@2
           inputs:
             key: 'yarn | "$(Agent.OS)" | yarn.lock'
