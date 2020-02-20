@@ -66,10 +66,10 @@ stages:
             yarn build
           displayName: 'Build'
 
-        - task: PublishPipelineArtifact@1
+        - task: PublishBuildArtifacts@1
           inputs:
-            path: $(System.DefaultWorkingDirectory)/
-            artifact: build_result
+            pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+            artifactName: drop
 
 
   # B) Checker and validator tools for static code analysis
@@ -80,6 +80,13 @@ stages:
       - job: lint
         steps:
         - checkout: none
+
+        - task: DownloadBuildArtifacts@0
+          inputs:
+            buildType: 'current'
+            downloadType: 'single'
+            artifactName: 'drop'
+            downloadPath: '$(System.DefaultWorkingDirectory)/'
 
         - task: DownloadPipelineArtifact@2
           inputs:
