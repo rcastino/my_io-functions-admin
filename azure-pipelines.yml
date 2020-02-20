@@ -10,7 +10,8 @@
 # - RESOURCE_GROUP_NAME
 # - APP_NAME
 
-# - AZURE_SP_TENANT="<tenantid>"
+
+# - AZURE_SP_TENANT="<tenantid>" 
 # - AZURE_SP="<service principal id>"
 # - AZURE_SP_PASSWORD="<service principal password>"
 # - AZURE_SUBSCRIPTION_ID="<subscription id>"
@@ -20,6 +21,7 @@
 
 variables:
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
+  FUNCTION_APP_NAME: 'myfunctions-io'
 
 # This pipeline is triggered to run whenever a push is made to 
 # any branch (not only 'master') or the 'latest' tag is pushed
@@ -169,6 +171,7 @@ stages:
     jobs:
       - job: deploy
         steps:
+        # TODO : DELETE
         - bash: |            
             if [[ -z "${RESOURCE_GROUP_NAME}" ]]
             then
@@ -201,8 +204,7 @@ stages:
           inputs:
             azureSubscription: '$(AZURE_SUBSCRIPTION)'
             appType: 'functionApp'
-            appName: '$(APP_NAME)'
-            resourceGroupName: '$(RESOURCE_GROUP_NAME)'
+            appName: '$(FUNCTION_APP_NAME)'
             package: '$(System.DefaultWorkingDirectory)/'
             deploymentMethod: 'auto'
 
