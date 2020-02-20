@@ -241,6 +241,7 @@ stages:
               exit 1
             fi
           displayName: 'Check variables'
+        - checkout: self
         - task: Cache@2
           inputs:
             key: 'yarn | "$(Agent.OS)" | yarn.lock'
