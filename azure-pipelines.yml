@@ -21,10 +21,13 @@
 variables:
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
 
-#trigger:
-#  branches:
-#    include:
-#      - refs/tags/latest
+# This pipeline is triggered to run whenever a push is made to 
+# any branch or the 'latest' tag is pushed
+trigger:
+  branches:
+    include:
+      - '*'
+      - refs/tags/latest
 
 #pr:
 #  branches:
