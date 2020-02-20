@@ -79,7 +79,7 @@ stages:
       # B1) NEW Analyze source code to find errors
       - job: lint
         steps:
-        - checkout: null
+        - checkout: none
 
         - task: DownloadPipelineArtifact@2
           inputs:
