@@ -66,39 +66,17 @@ stages:
             yarn build
           displayName: 'Build'
 
-        - task: PublishBuildArtifacts@1
-          inputs:
-            pathtoPublish: '$(Build.SourcesDirectory)/'
-            artifactName: drop
+        - script: |
+            yarn lint
+          displayName: 'Lint'
 
 
   # B) Checker and validator tools for static code analysis
   - stage: Source_check
     dependsOn: ['Build_check']
     jobs:
-      # B1) NEW Analyze source code to find errors
-      - job: lint
-        steps:
-        - checkout: none
-
-        - task: DownloadBuildArtifacts@0
-          inputs:
-            buildType: 'current'
-            downloadType: 'single'
-            artifactName: 'drop'
-            downloadPath: '$(Build.SourcesDirectory)/'
-
-        - task: DownloadPipelineArtifact@2
-          inputs:
-            artifact: build_result
-
-        - script: |
-            yarn lint
-          displayName: 'Lint'
-
       # B1) TODO Analyze source code to find errors
-      - job: lint_orig
-        condition: false
+      - job: lint
         steps:
         - task: Cache@2
           condition: false
