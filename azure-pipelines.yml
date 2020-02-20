@@ -164,12 +164,10 @@ stages:
 
   # D1) Deploy to STAGING only if there is a push on 'master' branch
   - stage: Deploy_staging
-    dependsOn:
-    - Build
-    - Test
+    dependsOn: []
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
     jobs:
-      - job: prepare_deploy
+      - job: deploy
         steps:
         - bash: |            
             if [[ -z "${RESOURCE_GROUP_NAME}" ]]
@@ -199,17 +197,14 @@ stages:
             yarn build
           displayName: 'Build'
 
-      - job: deploy
-        dependsOn: [prepare_deploy]
-        steps:
-          - task: AzureFunctionApp@1
-            inputs:
-              azureSubscription: '$(AZURE_SUBSCRIPTION)'
-              appType: 'functionApp'
-              appName: '$(APP_NAME)'
-              resourceGroupName: '$(RESOURCE_GROUP_NAME)'
-              package: '$(System.DefaultWorkingDirectory)/'
-              deploymentMethod: 'auto'
+        - task: AzureFunctionApp@1
+          inputs:
+            azureSubscription: '$(AZURE_SUBSCRIPTION)'
+            appType: 'functionApp'
+            appName: '$(APP_NAME)'
+            resourceGroupName: '$(RESOURCE_GROUP_NAME)'
+            package: '$(System.DefaultWorkingDirectory)/'
+            deploymentMethod: 'auto'
 
 
   # D2) Deploy to PRODUCTION only if the 'latest' tag is pushed
