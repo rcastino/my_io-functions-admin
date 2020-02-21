@@ -25,7 +25,7 @@
 variables:
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
   #DO_DEPLOY: True
-  #DEPLOY_TO_SLOT: False
+  DEPLOY_TO_SLOT: False
 
 # This pipeline is triggered to run whenever a push is made to 
 # any branch (not only 'master') or the 'latest' tag is pushed
