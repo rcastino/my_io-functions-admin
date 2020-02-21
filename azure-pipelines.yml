@@ -163,9 +163,9 @@ stages:
           eq(variables['Build.SourceBranch'], 'refs/heads/master')
         )
       )
-    dependsOn:
-    - Build
-    - Test
+    dependsOn: []
+    #- Build
+    #- Test
     jobs:
       - job: deploy_to_staging
         steps:
@@ -186,18 +186,30 @@ stages:
             yarn build
           displayName: 'Build'
 
+        # C1) First option: standard deployment (without slot)
         - task: AzureFunctionApp@1
+          condition: and(succeeded(), ne(variables['DEPLOY_TO_SLOT'], True))
           inputs:
             azureSubscription: '$(STAGING_AZURE_SUBSCRIPTION)'
+            resourceGroupName: '$(STAGING_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(STAGING_FUNCTION_APP_NAME)'
             package: '$(System.DefaultWorkingDirectory)/'
-            
-            deployToSlotOrASE: false
-            resourceGroupName: '$(STAGING_RESOURCE_GROUP_NAME)'
-            slotName: 'staging'
-            
             deploymentMethod: 'auto'
+          displayName: Deploy function app
+
+        # C2) Alternative option: deployment to 'staging' slot
+        - task: AzureFunctionApp@1
+          condition: and(succeeded(), eq(variables['DEPLOY_TO_SLOT'], True))
+          inputs:
+            azureSubscription: '$(STAGING_AZURE_SUBSCRIPTION)'
+            resourceGroupName: '$(STAGING_RESOURCE_GROUP_NAME)'
+            appType: 'functionApp'
+            appName: '$(STAGING_FUNCTION_APP_NAME)'
+            package: '$(System.DefaultWorkingDirectory)/'
+            deploymentMethod: 'auto'
+            deployToSlotOrASE: true
+            slotName: 'staging'
           displayName: Deploy function app
 
 
