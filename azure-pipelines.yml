@@ -5,11 +5,14 @@
 # in the package.json file. Since we are deploying on Azure functions on Windows
 # runtime, the pipeline is currently configured to use a Windows hosted image.
 #
-# The following variables needs to be defined in the pipeline before running it:
-# - AZURE_SUBSCRIPTION
-# - RESOURCE_GROUP_NAME
-# - APP_NAME
-
+# The following variables needs to be defined before running the pipeline:
+# - STAGING_AZURE_SUBSCRIPTION
+# - STAGING_RESOURCE_GROUP_NAME
+# - STAGING_FUNCTION_APP_NAME
+#
+# - PRODUCTION_AZURE_SUBSCRIPTION
+# - PRODUCTION_RESOURCE_GROUP_NAME
+# - PRODUCTION_FUNCTION_APP_NAME
 
 # - AZURE_SP_TENANT="<tenantid>" 
 # - AZURE_SP="<service principal id>"
@@ -21,7 +24,6 @@
 
 variables:
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
-  FUNCTION_APP_NAME: 'myfunctions-io'
 
 # This pipeline is triggered to run whenever a push is made to 
 # any branch (not only 'master') or the 'latest' tag is pushed
@@ -44,16 +46,14 @@ stages:
   - stage: Build
     dependsOn: []
     jobs:
-      - job: build_check
-        # A1) Checkout, install module and compile
+      # A1) Checkout, install module and compile
+      - job: compile
         steps:
-        - checkout: self
-
         - task: NodeTool@0
           inputs:
             versionSpec: '10.14.1'
-          displayName: 'Install Node.js'
-        
+          displayName: 'Install node.js'
+
         - task: Cache@2
           inputs:
             key: 'yarn | "$(Agent.OS)" | yarn.lock'
@@ -61,7 +61,7 @@ stages:
               yarn | "$(Agent.OS)"
               yarn
             path: $(YARN_CACHE_FOLDER)
-          displayName: Cache Yarn packages
+          displayName: Cache yarn packages
 
         - script: |
             yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
@@ -71,28 +71,56 @@ stages:
             yarn build
           displayName: 'Build'
 
-        # A2) Analyze source code to find errors with lint
+      # A2) Analyze source code to find errors with lint
+      - job: lint
+        steps:        
+        - task: Cache@2
+          inputs:
+            key: 'yarn | "$(Agent.OS)" | yarn.lock'
+            restoreKeys: |
+              yarn | "$(Agent.OS)"
+              yarn
+            path: $(YARN_CACHE_FOLDER)
+          displayName: Cache yarn packages
+
+        - script: |
+            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
+          displayName: 'Install node modules'
+
         - script: |
             yarn lint
           displayName: 'Lint'
 
-        # A3) Validate API definition (lint_api)
+      # A3) Validate API definition
+      - job: lint_api
+        steps:
         - script: |
             npx oval validate -p openapi/index.yaml
-          displayName: 'Validate OpenAPI'
+          displayName: 'Validate openAPI'
 
-        # A4) Check source code with danger (only when there is a PR)
-        - bash: |            
-            if [[ -z "${DANGER_GITHUB_API_TOKEN}" ]]
-            then
-              echo "skipping..."
-            else
-              yarn danger ci
-            fi
+      # A4) Check source code with danger (only when there is a PR)
+      - job: danger 
+        condition: and(variables['DANGER_GITHUB_API_TOKEN'], neq(variables['Build.SourceBranch'], 'refs/heads/master'))
+        steps:
+        - task: Cache@2
+          inputs:
+            key: 'yarn | "$(Agent.OS)" | yarn.lock'
+            restoreKeys: |
+              yarn | "$(Agent.OS)"
+              yarn
+            path: $(YARN_CACHE_FOLDER)
+          displayName: Cache yarn packages
+
+        - script: |
+            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
+          displayName: 'Install node modules'
+
+        - bash: |
+            yarn danger ci
           displayName: 'Danger CI'
 
 
-  # B) Run unit tests in parallel
+  # B) Run unit tests
   - stage: Test
     dependsOn: []
     jobs:
@@ -105,7 +133,7 @@ stages:
               yarn | "$(Agent.OS)"
               yarn
             path: $(YARN_CACHE_FOLDER)
-          displayName: Cache Yarn packages
+          displayName: Cache yarn packages
 
         - script: |
             yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
@@ -118,6 +146,90 @@ stages:
         - bash: |
             bash <(curl -s https://codecov.io/bash)
           displayName: 'Code coverage'
+
+
+  # C1) Deploy to STAGING only if there is a push on 'master' branch
+  - stage: Deploy_staging
+    dependsOn:
+    - Build
+    - Test
+    jobs:
+      - job: deploy_to_staging
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+        steps:
+        - task: Cache@2
+          inputs:
+            key: 'yarn | "$(Agent.OS)" | yarn.lock'
+            restoreKeys: |
+              yarn | "$(Agent.OS)"
+              yarn
+            path: $(YARN_CACHE_FOLDER)
+          displayName: Cache yarn packages
+
+        - script: |
+            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
+          displayName: 'Install node modules'
+
+        - bash: |
+            yarn build
+          displayName: 'Build'
+
+        - task: AzureFunctionApp@1
+          inputs:
+            azureSubscription: '$(STAGING_AZURE_SUBSCRIPTION)'
+            appType: 'functionApp'
+            appName: '$(STAGING_FUNCTION_APP_NAME)'
+            package: '$(System.DefaultWorkingDirectory)/'
+            deploymentMethod: 'auto'
+          displayName: Deploy function app
+
+
+  # D2) Deploy to PRODUCTION only if the 'latest' tag is pushed
+#  - stage: Deploy_prod
+#    dependsOn:
+#    - Build
+#    - Test
+#    jobs:
+      - job: deploy_to_production
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/tags/latest'))
+        steps:
+        - bash: |            
+            if [[ -z "${PRODUCTION_RESOURCE_GROUP_NAME}" ]]
+            then
+              echo "[error] Set up environment variables first if you want to start a new deploy:"
+              echo "[error] variable PRODUCTION_RESOURCE_GROUP_NAME is missing"
+              exit 1
+            fi
+          displayName: 'Check variables'
+
+        - task: Cache@2
+          inputs:
+            key: 'yarn | "$(Agent.OS)" | yarn.lock'
+            restoreKeys: |
+              yarn | "$(Agent.OS)"
+              yarn
+            path: $(YARN_CACHE_FOLDER)
+          displayName: Cache yarn packages
+
+        - script: |
+            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
+          displayName: 'Install node modules'
+
+        - bash: |
+            yarn build
+          displayName: 'Build'
+
+        - task: AzureFunctionApp@1
+          inputs:
+            azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
+            appType: 'functionApp'
+            appName: '$(PRODUCTION_FUNCTION_APP_NAME)'
+            resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
+            package: '$(System.DefaultWorkingDirectory)/'
+            deploymentMethod: 'auto'
+          displayName: Deploy function app
+
+
 
 
   # D) TODO Deploy to a slot 
@@ -134,7 +246,7 @@ stages:
               yarn | "$(Agent.OS)"
               yarn
             path: $(YARN_CACHE_FOLDER)
-          displayName: Cache Yarn packages
+          displayName: Cache yarn packages
 
         - script: |
             yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
@@ -146,114 +258,20 @@ stages:
 
         - task: AzureFunctionApp@1
           inputs:
-            azureSubscription: '$(AZURE_SUBSCRIPTION)'
+            azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
             appType: 'functionApp'
-            appName: '$(APP_NAME)'
+            appName: '$(PRODUCTION_FUNCTION_APP_NAME)'
             deployToSlotOrASE: true
-            resourceGroupName: '$(RESOURCE_GROUP_NAME)'
+            resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             slotName: 'staging'
             package: '$(System.DefaultWorkingDirectory)/'
             deploymentMethod: 'auto'
 
         - task: AzureAppServiceManage@0
           inputs:
-            azureSubscription: '$(AZURE_SUBSCRIPTION)'
-            WebAppName: '$(APP_NAME)'
-            ResourceGroupName: '$(RESOURCE_GROUP_NAME)'
+            azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
+            WebAppName: '$(PRODUCTION_FUNCTION_APP_NAME)'
+            ResourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             SourceSlot: staging
             SwapWithProduction: true
 
-
-  # D1) Deploy to STAGING only if there is a push on 'master' branch
-  - stage: Deploy_staging
-    dependsOn: []
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-    jobs:
-      - job: deploy
-        steps:
-        # TODO : DELETE
-        - bash: |            
-            if [[ -z "${RESOURCE_GROUP_NAME}" ]]
-            then
-              echo "[error] Set up environment variables first if you want to start a new deploy:"
-              echo "[error] variable RESOURCE_GROUP_NAME is missing"
-              exit 1
-            fi
-          displayName: 'TODO Check variables'
-
-        - checkout: self
-
-        - task: Cache@2
-          inputs:
-            key: 'yarn | "$(Agent.OS)" | yarn.lock'
-            restoreKeys: |
-              yarn | "$(Agent.OS)"
-              yarn
-            path: $(YARN_CACHE_FOLDER)
-          displayName: Cache Yarn packages
-
-        - script: |
-            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
-          displayName: 'Install node modules'
-
-        - bash: |
-            yarn build
-          displayName: 'Build'
-
-        - task: AzureFunctionApp@1
-          inputs:
-            azureSubscription: '$(AZURE_SUBSCRIPTION)'
-            appType: 'functionApp'
-            appName: '$(FUNCTION_APP_NAME)'
-            package: '$(System.DefaultWorkingDirectory)/'
-            deploymentMethod: 'auto'
-
-
-  # D2) Deploy to PRODUCTION only if the 'latest' tag is pushed
-  - stage: Deploy_prod
-    dependsOn:
-    - Build
-    - Test
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/tags/latest'))
-    jobs:
-      - job: prepare_deploy
-        steps:
-        - bash: |            
-            if [[ -z "${PRODUCTION_RESOURCE_GROUP_NAME}" ]]
-            then
-              echo "[error] Set up environment variables first if you want to start a new deploy:"
-              echo "[error] variable PRODUCTION_RESOURCE_GROUP_NAME is missing"
-              exit 1
-            fi
-          displayName: 'Check variables'
-
-        - checkout: self
-        
-        - task: Cache@2
-          inputs:
-            key: 'yarn | "$(Agent.OS)" | yarn.lock'
-            restoreKeys: |
-              yarn | "$(Agent.OS)"
-              yarn
-            path: $(YARN_CACHE_FOLDER)
-          displayName: Cache Yarn packages
-
-        - script: |
-            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
-          displayName: 'Install node modules'
-
-        - bash: |
-            yarn build
-          displayName: 'Build'
-
-      - job: deploy
-        dependsOn: [prepare_deploy]
-        steps:
-          - task: AzureFunctionApp@1
-            inputs:
-              azureSubscription: '$(AZURE_SUBSCRIPTION)'
-              appType: 'functionApp'
-              appName: '$(APP_NAME)'
-              resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
-              package: '$(System.DefaultWorkingDirectory)/'
-              deploymentMethod: 'auto'
