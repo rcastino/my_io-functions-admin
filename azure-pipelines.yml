@@ -202,7 +202,10 @@ stages:
             deploymentMethod: 'auto'
           displayName: Deploy to staging env
 
-        # c2) Alternative option: deployment to 'staging' slot in production env
+        # c2) Alternative option: deployment to 'staging' slot in production env.
+        # Note. Deployment slots let you deploy different versions of your function
+        # app to different URLs. You can test a certain version and then swap content
+        # and configuration between slots.
         - task: AzureFunctionApp@1
           condition: and(succeeded(), eq(variables['DEPLOY_TO_SLOT'], True))
           inputs:
