@@ -24,8 +24,8 @@
 
 variables:
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
-  DO_DEPLOY: True
-  DEPLOY_TO_SLOT: False
+  #DO_DEPLOY: True
+  #DEPLOY_TO_SLOT: False
 
 # This pipeline is triggered to run whenever a push is made to 
 # any branch (not only 'master') or the 'latest' tag is pushed
@@ -155,7 +155,11 @@ stages:
           displayName: 'Code coverage'
 
 
-  # C) Deploy to STAGING only if there is a push on 'master' branch
+  # C) Deploy to STAGING only if there is a push on 'master' branch.
+  # Other conditions based on variables settings:
+  # - $DO_DEPLOY != True (or undefined): skip deployment
+  # - c1) $DEPLOY_TO_SLOT != True (or undefined): deploy to stage environment
+  # - c2) $DEPLOY_TO_SLOT == True: deploy to staging slot in production environment
   - stage: Deploy_staging
     condition: and(succeeded(),
         and(
@@ -186,7 +190,7 @@ stages:
             yarn build
           displayName: 'Build'
 
-        # C1) First option: standard deployment (without slot)
+        # c1) First option: standard deployment (without slot)
         - task: AzureFunctionApp@1
           condition: and(succeeded(), ne(variables['DEPLOY_TO_SLOT'], True))
           inputs:
@@ -196,21 +200,21 @@ stages:
             appName: '$(STAGING_FUNCTION_APP_NAME)'
             package: '$(System.DefaultWorkingDirectory)/'
             deploymentMethod: 'auto'
-          displayName: Deploy function app
+          displayName: Deploy to staging env
 
-        # C2) Alternative option: deployment to 'staging' slot
+        # c2) Alternative option: deployment to 'staging' slot in production env
         - task: AzureFunctionApp@1
           condition: and(succeeded(), eq(variables['DEPLOY_TO_SLOT'], True))
           inputs:
-            azureSubscription: '$(STAGING_AZURE_SUBSCRIPTION)'
-            resourceGroupName: '$(STAGING_RESOURCE_GROUP_NAME)'
+            azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
+            resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
-            appName: '$(STAGING_FUNCTION_APP_NAME)'
+            appName: '$(PRODUCTION_FUNCTION_APP_NAME)'
             package: '$(System.DefaultWorkingDirectory)/'
             deploymentMethod: 'auto'
             deployToSlotOrASE: true
             slotName: 'staging'
-          displayName: Deploy function app
+          displayName: Deploy to staging slot in prod
 
 
   # D) Deploy to PRODUCTION only if the 'latest' tag is pushed
