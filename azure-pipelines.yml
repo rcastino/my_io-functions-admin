@@ -24,7 +24,7 @@
 
 variables:
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
-  #DO_DEPLOY: True
+  DO_DEPLOY: False
   #DEPLOY_TO_SLOT: False
 
 # This pipeline is triggered to run whenever a push is made to 
