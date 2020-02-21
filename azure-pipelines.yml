@@ -138,6 +138,10 @@ stages:
           displayName: Cache yarn packages
 
         - script: |
+            node -v
+          displayName: 'Node version'
+
+        - script: |
             yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
           displayName: 'Install node modules'
 
@@ -162,9 +166,9 @@ stages:
           eq(variables['Build.SourceBranch'], 'refs/heads/master')
         )
       )
-    dependsOn: []
-    #- Build
-    #- Test
+    dependsOn:
+    - Build
+    - Test
     jobs:
       - job: deploy_to_staging
         steps:
