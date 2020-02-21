@@ -24,6 +24,8 @@
 
 variables:
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
+  DO_DEPLOY: True
+  DEPLOY_TO_SLOT: False
 
 # This pipeline is triggered to run whenever a push is made to 
 # any branch (not only 'master') or the 'latest' tag is pushed
@@ -153,14 +155,19 @@ stages:
           displayName: 'Code coverage'
 
 
-  # C1) Deploy to STAGING only if there is a push on 'master' branch
+  # C) Deploy to STAGING only if there is a push on 'master' branch
   - stage: Deploy_staging
+    condition: and(succeeded(),
+        and(
+          eq(variables['DO_DEPLOY'], True), 
+          eq(variables['Build.SourceBranch'], 'refs/heads/master')
+        )
+      )
     dependsOn:
     - Build
     - Test
     jobs:
       - job: deploy_to_staging
-        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         steps:
         - task: Cache@2
           inputs:
@@ -185,18 +192,28 @@ stages:
             appType: 'functionApp'
             appName: '$(STAGING_FUNCTION_APP_NAME)'
             package: '$(System.DefaultWorkingDirectory)/'
+            
+            deployToSlotOrASE: false
+            resourceGroupName: '$(STAGING_RESOURCE_GROUP_NAME)'
+            slotName: 'staging'
+            
             deploymentMethod: 'auto'
           displayName: Deploy function app
 
 
-  # D2) Deploy to PRODUCTION only if the 'latest' tag is pushed
-#  - stage: Deploy_prod
-#    dependsOn:
-#    - Build
-#    - Test
-#    jobs:
+  # D) Deploy to PRODUCTION only if the 'latest' tag is pushed
+  - stage: Deploy_production
+    condition: and(succeeded(),
+        and(
+          eq(variables['DO_DEPLOY'], true), 
+          eq(variables['Build.SourceBranch'], 'refs/tags/latest')
+        )
+      )
+    dependsOn:
+    - Build
+    - Test
+    jobs:
       - job: deploy_to_production
-        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/tags/latest'))
         steps:
         - bash: |            
             if [[ -z "${PRODUCTION_RESOURCE_GROUP_NAME}" ]]
