@@ -157,9 +157,9 @@ stages:
 
   # C) Deploy to STAGING only if there is a push on 'master' branch.
   # Other conditions based on variables settings:
-  # - $DO_DEPLOY != True (or undefined): skip deployment
-  # - c1) $DEPLOY_TO_SLOT != True (or undefined): deploy to stage environment
-  # - c2) $DEPLOY_TO_SLOT == True: deploy to staging slot in production environment
+  # - if $DO_DEPLOY != True (or undefined) skip deployment, otherwise:
+  #   - c1) $DEPLOY_TO_SLOT != True (or undefined): deploy to TEST environment
+  #   - c2) $DEPLOY_TO_SLOT == True: deploy to staging slot in production environment
   - stage: Deploy_staging
     condition: and(succeeded(),
         and(
@@ -190,7 +190,7 @@ stages:
             yarn build
           displayName: 'Build'
 
-        # c1) First option: standard deployment (without slot)
+        # c1) First option: standard deployment in TEST env (without slots)
         - task: AzureFunctionApp@1
           condition: and(succeeded(), ne(variables['DEPLOY_TO_SLOT'], True))
           inputs:
@@ -200,7 +200,7 @@ stages:
             appName: '$(STAGING_FUNCTION_APP_NAME)'
             package: '$(System.DefaultWorkingDirectory)/'
             deploymentMethod: 'auto'
-          displayName: Deploy to staging env
+          displayName: Deploy to test env
 
         # c2) Alternative option: deployment to 'staging' slot in production env.
         # Note. Deployment slots let you deploy different versions of your function
@@ -217,10 +217,15 @@ stages:
             deploymentMethod: 'auto'
             deployToSlotOrASE: true
             slotName: 'staging'
-          displayName: Deploy to staging slot in prod
+          displayName: Deploy to staging slot in prod env
 
 
-  # D) Deploy to PRODUCTION only if the 'latest' tag is pushed
+  # D) Deploy to PRODUCTION only if the 'latest' tag is pushed.
+  # Other conditions based on variables settings:
+  # - if $DO_DEPLOY != True (or undefined) skip deployment, otherwise:
+  #   - d1) $DEPLOY_TO_SLOT != True (or undefined): deploy to PROD environment
+  #   - d2) $DEPLOY_TO_SLOT == True: deploy to 'staging' slot in PROD environment
+  #         and then swap 'staging' slot with 'production' slot
   - stage: Deploy_production
     condition: and(succeeded(),
         and(
@@ -234,15 +239,6 @@ stages:
     jobs:
       - job: deploy_to_production
         steps:
-        - bash: |            
-            if [[ -z "${PRODUCTION_RESOURCE_GROUP_NAME}" ]]
-            then
-              echo "[error] Set up environment variables first if you want to start a new deploy:"
-              echo "[error] variable PRODUCTION_RESOURCE_GROUP_NAME is missing"
-              exit 1
-            fi
-          displayName: 'Check variables'
-
         - task: Cache@2
           inputs:
             key: 'yarn | "$(Agent.OS)" | yarn.lock'
@@ -260,59 +256,43 @@ stages:
             yarn build
           displayName: 'Build'
 
+        # d1) First option: standard deployment in PROD (without swapping slots)
         - task: AzureFunctionApp@1
+          condition: and(succeeded(), ne(variables['DEPLOY_TO_SLOT'], True))
           inputs:
             azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
+            resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(PRODUCTION_FUNCTION_APP_NAME)'
-            resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             package: '$(System.DefaultWorkingDirectory)/'
             deploymentMethod: 'auto'
-          displayName: Deploy function app
+          displayName: Deploy to production env
 
+        # d2) Alternative option: deployment in PROD using slots.
 
-
-
-  # D) TODO Deploy to a slot 
-  - stage: Deploy_staging_slot
-    dependsOn: []
-    condition: false
-    jobs:
-      - job: deploy
-        steps:
-        - task: Cache@2
-          inputs:
-            key: 'yarn | "$(Agent.OS)" | yarn.lock'
-            restoreKeys: |
-              yarn | "$(Agent.OS)"
-              yarn
-            path: $(YARN_CACHE_FOLDER)
-          displayName: Cache yarn packages
-
-        - script: |
-            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
-          displayName: 'Install node modules'
-
-        - bash: |
-            yarn build
-          displayName: 'Build'
-
+        # d2-I) Deployment to 'staging' slot in production environment.
+        # Note. The deployment to 'staging' slot is done to be sure that the code
+        # tagged 'latest' is the ones that will be swapped to be deployed in Prod...
         - task: AzureFunctionApp@1
+          condition: and(succeeded(), eq(variables['DEPLOY_TO_SLOT'], True))
           inputs:
             azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
+            resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(PRODUCTION_FUNCTION_APP_NAME)'
+            package: '$(System.DefaultWorkingDirectory)/'
+            deploymentMethod: 'auto'
             deployToSlotOrASE: true
-            resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             slotName: 'staging'
-            package: '$(System.DefaultWorkingDirectory)/'
-            deploymentMethod: 'auto'
+          displayName: Deploy to staging slot
 
+        # d2-II) Swap 'staging' with 'production' slot.
         - task: AzureAppServiceManage@0
+          condition: and(succeeded(), eq(variables['DEPLOY_TO_SLOT'], True))
           inputs:
             azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
             WebAppName: '$(PRODUCTION_FUNCTION_APP_NAME)'
             ResourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             SourceSlot: staging
             SwapWithProduction: true
-
+          displayName: Swap with production slot
