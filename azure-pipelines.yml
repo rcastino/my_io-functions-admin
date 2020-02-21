@@ -99,8 +99,13 @@ stages:
           displayName: 'Validate openAPI'
 
       # A4) Check source code with danger (only when there is a PR)
-      - job: danger 
-        condition: and(variables['DANGER_GITHUB_API_TOKEN'], nq(variables['Build.SourceBranch'], 'refs/heads/master'))
+      - job: danger
+        condition: and(succeeded(),
+            and(
+              variables['DANGER_GITHUB_API_TOKEN'], 
+              ne(variables['Build.SourceBranch'], 'refs/heads/master')
+            )
+          )
         steps:
         - task: Cache@2
           inputs:
