@@ -182,8 +182,8 @@ stages:
           displayName: 'Install node modules'
 
         - bash: |
-            yarn build
-          displayName: 'Build'
+            yarn predeploy
+          displayName: 'Build deployment zip'
 
         # c1) First option: standard deployment in STAGING env (without slots)
         - task: AzureFunctionApp@1
@@ -193,7 +193,7 @@ stages:
             resourceGroupName: '$(STAGING_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(STAGING_FUNCTION_APP_NAME)'
-            package: '$(System.DefaultWorkingDirectory)/'
+            package: '$(System.DefaultWorkingDirectory)/dist.zip'
             deploymentMethod: 'auto'
           displayName: Deploy to staging env
 
@@ -208,7 +208,7 @@ stages:
             resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(PRODUCTION_FUNCTION_APP_NAME)'
-            package: '$(System.DefaultWorkingDirectory)/'
+            package: '$(System.DefaultWorkingDirectory)/dist.zip'
             deploymentMethod: 'auto'
             deployToSlotOrASE: true
             slotName: 'staging'
@@ -248,8 +248,8 @@ stages:
           displayName: 'Install node modules'
 
         - bash: |
-            yarn build
-          displayName: 'Build'
+            yarn predeploy
+          displayName: 'Build deployment zip'
 
         # d1) First option: standard deployment in PROD (without swapping slots)
         - task: AzureFunctionApp@1
@@ -259,7 +259,7 @@ stages:
             resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(PRODUCTION_FUNCTION_APP_NAME)'
-            package: '$(System.DefaultWorkingDirectory)/'
+            package: '$(System.DefaultWorkingDirectory)/dist.zip'
             deploymentMethod: 'auto'
           displayName: Deploy to production env
 
@@ -275,7 +275,7 @@ stages:
             resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(PRODUCTION_FUNCTION_APP_NAME)'
-            package: '$(System.DefaultWorkingDirectory)/'
+            package: '$(System.DefaultWorkingDirectory)/dist.zip'
             deploymentMethod: 'auto'
             deployToSlotOrASE: true
             slotName: 'staging'
