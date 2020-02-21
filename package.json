@@ -13,7 +13,9 @@
     "test:coverage": "jest --coverage",
     "lint": "tslint -p .",
     "deploy": "npm run build && func azure functionapp publish agid-functions-admin-test",
-    "generate:definitions": "rimraf ./generated/definitions && shx mkdir -p ./generated/definitions && gen-api-models --api-spec ./openapi/index.yaml --out-dir ./generated/definitions"
+    "generate:definitions": "rimraf ./generated/definitions && shx mkdir -p ./generated/definitions && gen-api-models --api-spec ./openapi/index.yaml --out-dir ./generated/definitions",
+    "dist:zip": "zip -r dist.zip . --exclude @.funcignore --exclude .funcignore",
+    "predeploy": "npm-run-all build:production dist:zip"
   },
   "description": "",
   "devDependencies": {
