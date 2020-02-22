@@ -73,6 +73,7 @@ stages:
             verbose: true
           displayName: 'Make deployment zip'
 
+        # Publish the build artifact only if deployment is not skipped
         - task: PublishPipelineArtifact@1
           condition: and(
               succeeded(),
@@ -177,38 +178,6 @@ stages:
           displayName: 'Code coverage'
 
 
-        - task: ArchiveFiles@2
-          inputs:
-            rootFolderOrFile: '$(System.DefaultWorkingDirectory)/utils'
-            includeRootFolder: false
-            archiveType: 'zip'
-            archiveFile: '$(Pipeline.Workspace)/utils.zip'
-            replaceExistingArchive: true
-            verbose: true
-
-        - task: PublishPipelineArtifact@1
-          condition: false
-          inputs:
-            path: $(Pipeline.Workspace)/utils.zip
-            artifact: mybuild
-
-        - bash: |
-            echo 'Build.BinariesDirectory: $(Build.BinariesDirectory)'
-            echo 'Build.ArtifactStagingDirectory: $(Build.ArtifactStagingDirectory)'
-            echo 'Build.BuildId: $(Build.BuildId)'
-            echo 'System.DefaultWorkingDirectory: $(System.DefaultWorkingDirectory)'
-            echo 'Other: $(Build.SourcesDirectory) and $(Agent.BuildDirectory)'
-            echo 'Pipeline.Workspace: $(Pipeline.Workspace)'
-            echo pwd
-            ls -la
-          displayName: 'TODO Print env var'          
-
-        - script: |
-            dir d:\a\1\a 
-            dir $(Pipeline.Workspace)
-          displayName: 'DIR arch'
-
-
   # C) Deploy to STAGING only if there is a push on 'master' branch.
   # Other conditions based on variables settings:
   # - if $DO_DEPLOY != True (or undefined) skip deployment, otherwise:
@@ -227,50 +196,7 @@ stages:
     jobs:
       - job: deploy_to_staging
         steps:
-        - task: Cache@2
-          inputs:
-            key: 'yarn | "$(Agent.OS)" | yarn.lock'
-            restoreKeys: |
-              yarn | "$(Agent.OS)"
-              yarn
-            path: $(YARN_CACHE_FOLDER)
-          displayName: Cache yarn packages
-          condition: false
-
-        - script: |
-            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
-          displayName: 'Install node modules'
-          condition: false
-
-
-        - bash: |
-            echo 'Build.BinariesDirectory: $(Build.BinariesDirectory)'
-            echo 'Build.ArtifactStagingDirectory: $(Build.ArtifactStagingDirectory)'
-            echo 'Build.BuildId: $(Build.BuildId)'
-            echo 'System.DefaultWorkingDirectory: $(System.DefaultWorkingDirectory)'
-            echo 'Other: $(Build.SourcesDirectory) and $(Agent.BuildDirectory)'
-            echo pwd
-            ls -la
-          displayName: 'TODO Print env var'
-
-        - script: |
-            dir d:\a\1\s 
-            echo '----------'
-            dir $(Pipeline.Workspace)
-          displayName: 'First DIR Working dir'
-
-
-        - script: |
-            dir d:\a\1\s 
-            echo '----------'
-            dir $(Pipeline.Workspace)
-          displayName: 'After DIR Working dir'
-
-        - bash: |
-            yarn predeploy
-          displayName: 'Build deployment zip'
-          condition: false
-
+        - checkout: none
 
         - task: DownloadPipelineArtifact@2
           inputs:
@@ -278,17 +204,6 @@ stages:
             artifactName: 'dist'
             targetPath: '$(System.DefaultWorkingDirectory)'
           displayName: 'Download build artifact'
-
-        - task: ArchiveFiles@2
-          condition: false
-          inputs:
-            rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
-            includeRootFolder: false
-            archiveType: 'zip'
-            archiveFile: 'dist.zip'
-            replaceExistingArchive: true
-            verbose: true
-
 
         # c1) First option: standard deployment in STAGING env (without slots)
         - task: AzureFunctionApp@1
@@ -339,34 +254,14 @@ stages:
     jobs:
       - job: deploy_to_production
         steps:
-        - task: Cache@2
+        - checkout: none
+
+        - task: DownloadPipelineArtifact@2
           inputs:
-            key: 'yarn | "$(Agent.OS)" | yarn.lock'
-            restoreKeys: |
-              yarn | "$(Agent.OS)"
-              yarn
-            path: $(YARN_CACHE_FOLDER)
-          displayName: Cache yarn packages
-
-        - script: |
-            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
-          displayName: 'Install node modules'
-
-        - bash: |
-            yarn predeploy
-          displayName: 'Build deployment zip'
-
-
-
-        - task: ArchiveFiles@2
-          inputs:
-            rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
-            includeRootFolder: false
-            archiveType: 'zip'
-            archiveFile: 'dist.zip'
-            replaceExistingArchive: true
-            verbose: true
-
+            buildType: 'current'
+            artifactName: 'dist'
+            targetPath: '$(System.DefaultWorkingDirectory)'
+          displayName: 'Download build artifact'
 
         # d1) First option: standard deployment in PROD (without swapping slots)
         - task: AzureFunctionApp@1
