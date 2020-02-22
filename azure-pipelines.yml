@@ -63,17 +63,8 @@ stages:
             yarn predeploy
           displayName: 'Build'
 
-        - task: ArchiveFiles@2
-          inputs:
-            rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
-            includeRootFolder: false
-            archiveType: 'zip'
-            archiveFile: 'dist.zip'
-            replaceExistingArchive: true
-            verbose: true
-          displayName: 'Make deployment zip'
-
-        # Publish the build artifact only if deployment is not skipped
+        # Publish the build artifacts only if deployment is not skipped.
+        # The '.artifactignore' file is used to control what files are uploaded
         - task: PublishPipelineArtifact@1
           condition: and(
               succeeded(),
@@ -86,18 +77,10 @@ stages:
               )
             )
           inputs:
-            targetPath: $(System.DefaultWorkingDirectory)/dist.zip
+            targetPath: $(System.DefaultWorkingDirectory)/
             artifact: 'dist'
             publishLocation: 'pipeline'
           displayName: Publish build artifacts
-
-
-        - task: PublishPipelineArtifact@1
-          inputs:
-            targetPath: $(System.DefaultWorkingDirectory)/
-            artifact: 'distarti'
-            publishLocation: 'pipeline'
-          displayName: TODO Publish build artifacts 
 
       # A2) Analyze source code to find errors with lint
       - job: lint
@@ -211,7 +194,15 @@ stages:
             buildType: 'current'
             artifactName: 'dist'
             targetPath: '$(System.DefaultWorkingDirectory)'
-          displayName: 'Download build artifact'
+          displayName: 'Download build artifacts'
+
+        - task: ArchiveFiles@2
+          inputs:
+            rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+            includeRootFolder: false
+            archiveType: 'zip'
+            archiveFile: 'dist.zip'
+          displayName: 'Make deployment zip'
 
         # c1) First option: standard deployment in STAGING env (without slots)
         - task: AzureFunctionApp@1
@@ -269,7 +260,15 @@ stages:
             buildType: 'current'
             artifactName: 'dist'
             targetPath: '$(System.DefaultWorkingDirectory)'
-          displayName: 'Download build artifact'
+          displayName: 'Download build artifacts'
+
+        - task: ArchiveFiles@2
+          inputs:
+            rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+            includeRootFolder: false
+            archiveType: 'zip'
+            archiveFile: 'dist.zip'
+          displayName: 'Make deployment zip'
 
         # d1) First option: standard deployment in PROD (without swapping slots)
         - task: AzureFunctionApp@1
