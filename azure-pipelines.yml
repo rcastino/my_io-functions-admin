@@ -65,6 +65,7 @@ stages:
 
       # A2) Analyze source code to find errors with lint
       - job: lint
+        dependsOn: [compile] # TODO remove
         steps:        
         - task: Cache@2
           inputs:
