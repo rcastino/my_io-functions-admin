@@ -9,7 +9,7 @@
 # - PRODUCTION_RESOURCE_GROUP_NAME
 # - PRODUCTION_FUNCTION_APP_NAME
 #
-# To enable the deployment and choose the type of deployment you also need to 
+# To enable the deployment and define if using deployment slots you also need to 
 # configure these variables:
 # - DO_DEPLOY: if False or undefined all deployments are skipped
 # - DEPLOY_TO_SLOT: if True the deployment to slot is performed
@@ -152,16 +152,17 @@ stages:
 
         - task: ArchiveFiles@2
           inputs:
-            rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+            rootFolderOrFile: '$(System.DefaultWorkingDirectory)/utils'
             includeRootFolder: false
             archiveType: 'zip'
-            archiveFile: 'distTEST.zip'
+            archiveFile: '$(Pipeline.Workspace)/utils.zip'
             replaceExistingArchive: true
             verbose: true
 
         - task: PublishPipelineArtifact@1
+          condition: false
           inputs:
-            path: distTEST.zip
+            path: $(Pipeline.Workspace)/utils.zip
             artifact: mybuild
 
         - bash: |
@@ -230,6 +231,7 @@ stages:
           displayName: 'First DIR Working dir'
 
         - task: DownloadPipelineArtifact@2
+          condition: false
           inputs:
             buildType: 'current'
             artifactName: 'mybuild'
