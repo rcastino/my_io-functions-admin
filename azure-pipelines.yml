@@ -47,7 +47,6 @@ stages:
       - job: compile
         steps:
         - task: Cache@2
-          condition: false
           inputs:
             key: 'yarn | "$(Agent.OS)" | yarn.lock'
             restoreKeys: |
@@ -61,14 +60,30 @@ stages:
           displayName: 'Install node modules'
 
         - bash: |
-            yarn build
+            yarn predeploy
           displayName: 'Build'
+
+        - task: PublishPipelineArtifact@1
+          condition: and(
+              succeeded(),
+              and (
+                eq(variables['DO_DEPLOY'], True),
+                or(
+                  eq(variables['Build.SourceBranch'], 'refs/heads/master'),
+                  eq(variables['Build.SourceBranch'], 'refs/tags/latest')
+                )
+              )
+            )
+          inputs:
+            targetPath: $(System.DefaultWorkingDirectory)/
+            artifact: 'dist'
+            publishLocation: 'pipeline'
+          displayName: Publish build artifacts
 
       # A2) Analyze source code to find errors with lint
       - job: lint
         steps:        
         - task: Cache@2
-          condition: false 
           inputs:
             key: 'yarn | "$(Agent.OS)" | yarn.lock'
             restoreKeys: |
@@ -210,10 +225,12 @@ stages:
               yarn
             path: $(YARN_CACHE_FOLDER)
           displayName: Cache yarn packages
+          condition: false
 
         - script: |
             yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
           displayName: 'Install node modules'
+          condition: false
 
 
         - bash: |
@@ -232,13 +249,6 @@ stages:
             dir $(Pipeline.Workspace)
           displayName: 'First DIR Working dir'
 
-        - task: DownloadPipelineArtifact@2
-          condition: false
-          inputs:
-            buildType: 'current'
-            artifactName: 'mybuild'
-            targetPath: '$(System.DefaultWorkingDirectory)'
-          displayName: 'Download pipeline mybuild'
 
         - script: |
             dir d:\a\1\s 
@@ -249,6 +259,15 @@ stages:
         - bash: |
             yarn predeploy
           displayName: 'Build deployment zip'
+          condition: false
+
+
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            buildType: 'current'
+            artifactName: 'dist'
+            targetPath: '$(System.DefaultWorkingDirectory)'
+          displayName: 'Download build artifact'
 
         - task: ArchiveFiles@2
           inputs:
