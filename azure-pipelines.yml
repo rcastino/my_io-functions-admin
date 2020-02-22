@@ -43,8 +43,8 @@ stages:
   - stage: Build
     dependsOn: []
     jobs:
-      # A1) Checkout, install module and compile
-      - job: compile
+      # A1) Checkout, install module and build distribution artifacts
+      - job: make_build
         steps:
         - task: Cache@2
           inputs:
@@ -61,7 +61,7 @@ stages:
 
         - bash: |
             yarn predeploy
-          displayName: 'Build'
+          displayName: 'Build distribution'
 
         # Publish the build artifacts only if deployment is not skipped.
         # The '.artifactignore' file is used to control what files are uploaded
