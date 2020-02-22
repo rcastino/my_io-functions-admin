@@ -9,11 +9,6 @@ import {
   SERVICE_COLLECTION_NAME,
   ServiceModel
 } from "io-functions-commons/dist/src/models/service";
-
-import {
-  TelemetryClient,
-  wrapCustomTelemetryClient
-} from "io-functions-commons/dist/src/utils/application_insights";
 import * as documentDbUtils from "io-functions-commons/dist/src/utils/documentdb";
 import { getRequiredStringEnv } from "io-functions-commons/dist/src/utils/env";
 import { secureExpressApp } from "io-functions-commons/dist/src/utils/express";
@@ -22,15 +17,7 @@ import { setAppContext } from "io-functions-commons/dist/src/utils/middlewares/c
 
 import createAzureFunctionHandler from "io-functions-express/dist/src/createAzureFunctionsHandler";
 
-import { UpdateService } from "./handler";
-
-// Whether we're in a production environment
-const isProduction = process.env.NODE_ENV === "production";
-
-const getCustomTelemetryClient = wrapCustomTelemetryClient(
-  isProduction,
-  new TelemetryClient()
-);
+import { GetSubscriptionKeys } from "./handler";
 
 const cosmosDbUri = getRequiredStringEnv("CUSTOMCONNSTR_COSMOSDB_URI");
 const cosmosDbKey = getRequiredStringEnv("CUSTOMCONNSTR_COSMOSDB_KEY");
@@ -48,6 +35,17 @@ const documentClient = new DocumentDBClient(cosmosDbUri, {
 
 const serviceModel = new ServiceModel(documentClient, servicesCollectionUrl);
 
+const servicePrincipalCreds = {
+  clientId: getRequiredStringEnv("SERVICE_PRINCIPAL_CLIENT_ID"),
+  secret: getRequiredStringEnv("SERVICE_PRINCIPAL_SECRET"),
+  tenantId: getRequiredStringEnv("SERVICE_PRINCIPAL_TENANT_ID")
+};
+const azureApimConfig = {
+  apim: getRequiredStringEnv("AZURE_APIM"),
+  apimResourceGroup: getRequiredStringEnv("AZURE_APIM_RESOURCE_GROUP"),
+  subscriptionId: getRequiredStringEnv("AZURE_SUBSCRIPTION_ID")
+};
+
 // tslint:disable-next-line: no-let
 let logger: Context["log"] | undefined;
 const contextTransport = new AzureContextTransport(() => logger, {
@@ -60,9 +58,9 @@ const app = express();
 secureExpressApp(app);
 
 // Add express route
-app.put(
-  "/adm/services/:serviceid",
-  UpdateService(getCustomTelemetryClient, serviceModel)
+app.get(
+  "/adm/services/:serviceid/keys",
+  GetSubscriptionKeys(serviceModel, servicePrincipalCreds, azureApimConfig)
 );
 
 const azureFunctionHandler = createAzureFunctionHandler(app);
