@@ -181,9 +181,30 @@ stages:
             yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
           displayName: 'Install node modules'
 
+
+        - bash: |
+            echo 'Build.BinariesDirectory: $(Build.BinariesDirectory)'
+            echo 'Build.ArtifactStagingDirectory: $(Build.ArtifactStagingDirectory)'
+            echo 'Build.BuildId: $(Build.BuildId)'
+            echo 'System.DefaultWorkingDirectory: $(System.DefaultWorkingDirectory)'
+            echo 'Other: $(Build.SourcesDirectory) and $(Agent.BuildDirectory)'
+            echo pwd
+            ls -la
+          displayName: 'Print env var'
+
         - bash: |
             yarn predeploy
           displayName: 'Build deployment zip'
+
+        - task: ArchiveFiles@2
+          inputs:
+            rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+            includeRootFolder: false
+            archiveType: 'zip'
+            archiveFile: 'dist.zip'
+            replaceExistingArchive: true
+            verbose: true
+
 
         # c1) First option: standard deployment in STAGING env (without slots)
         - task: AzureFunctionApp@1
@@ -250,6 +271,18 @@ stages:
         - bash: |
             yarn predeploy
           displayName: 'Build deployment zip'
+
+
+
+        - task: ArchiveFiles@2
+          inputs:
+            rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+            includeRootFolder: false
+            archiveType: 'zip'
+            archiveFile: 'dist.zip'
+            replaceExistingArchive: true
+            verbose: true
+            
 
         # d1) First option: standard deployment in PROD (without swapping slots)
         - task: AzureFunctionApp@1
