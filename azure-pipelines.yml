@@ -155,9 +155,14 @@ stages:
             rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
             includeRootFolder: false
             archiveType: 'zip'
-            archiveFile: '$(Build.ArtifactStagingDirectory)/distTEST.zip'
+            archiveFile: 'distTEST.zip'
             replaceExistingArchive: true
             verbose: true
+
+        - task: PublishPipelineArtifact@1
+          inputs:
+            path: distTEST.zip
+            artifact: mybuild
 
         - bash: |
             echo 'Build.BinariesDirectory: $(Build.BinariesDirectory)'
@@ -165,12 +170,14 @@ stages:
             echo 'Build.BuildId: $(Build.BuildId)'
             echo 'System.DefaultWorkingDirectory: $(System.DefaultWorkingDirectory)'
             echo 'Other: $(Build.SourcesDirectory) and $(Agent.BuildDirectory)'
+            echo 'Pipeline.Workspace: $(Pipeline.Workspace)'
             echo pwd
             ls -la
           displayName: 'TODO Print env var'          
 
         - script: |
             dir d:\a\1\a 
+            dir $(Pipeline.Workspace)
           displayName: 'DIR arch'
 
 
@@ -217,8 +224,23 @@ stages:
           displayName: 'TODO Print env var'
 
         - script: |
-            dir d:\a\1\a 
-          displayName: 'DIR arch'
+            dir d:\a\1\s 
+            echo '----------'
+            dir $(Pipeline.Workspace)
+          displayName: 'First DIR Working dir'
+
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            buildType: 'current'
+            artifactName: 'mybuild'
+            targetPath: '$(System.DefaultWorkingDirectory)'
+          displayName: 'Download pipeline mybuild'
+
+        - script: |
+            dir d:\a\1\s 
+            echo '----------'
+            dir $(Pipeline.Workspace)
+          displayName: 'After DIR Working dir'
 
         - bash: |
             yarn predeploy
