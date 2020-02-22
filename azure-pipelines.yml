@@ -91,6 +91,14 @@ stages:
             publishLocation: 'pipeline'
           displayName: Publish build artifacts
 
+
+        - task: PublishPipelineArtifact@1
+          inputs:
+            targetPath: $(System.DefaultWorkingDirectory)/
+            artifact: 'distarti'
+            publishLocation: 'pipeline'
+          displayName: TODO Publish build artifacts 
+
       # A2) Analyze source code to find errors with lint
       - job: lint
         steps:        
