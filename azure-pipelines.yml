@@ -167,9 +167,11 @@ stages:
             echo 'Other: $(Build.SourcesDirectory) and $(Agent.BuildDirectory)'
             echo pwd
             ls -la
-            echo '---'
-            ls -la d:\a\1\a
           displayName: 'TODO Print env var'          
+
+        - script: |
+            dir d:\a\1\a 
+          displayName: 'DIR arch'
 
 
   # C) Deploy to STAGING only if there is a push on 'master' branch.
@@ -212,9 +214,11 @@ stages:
             echo 'Other: $(Build.SourcesDirectory) and $(Agent.BuildDirectory)'
             echo pwd
             ls -la
-            echo '---'
-            ls -la d:\a\1\a          
           displayName: 'TODO Print env var'
+
+        - script: |
+            dir d:\a\1\a 
+          displayName: 'DIR arch'
 
         - bash: |
             yarn predeploy
