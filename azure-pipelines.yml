@@ -168,7 +168,7 @@ stages:
             echo pwd
             ls -la
             echo '---'
-            ls -la $(Build.ArtifactStagingDirectory)
+            ls -la d:\a\1\a
           displayName: 'TODO Print env var'          
 
 
@@ -213,7 +213,7 @@ stages:
             echo pwd
             ls -la
             echo '---'
-            ls -la $(Build.ArtifactStagingDirectory)            
+            ls -la d:\a\1\a          
           displayName: 'TODO Print env var'
 
         - bash: |
