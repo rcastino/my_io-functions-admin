@@ -150,6 +150,28 @@ stages:
           displayName: 'Code coverage'
 
 
+        - task: ArchiveFiles@2
+          inputs:
+            rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+            includeRootFolder: false
+            archiveType: 'zip'
+            archiveFile: '$(Build.ArtifactStagingDirectory)/distTEST.zip'
+            replaceExistingArchive: true
+            verbose: true
+
+        - bash: |
+            echo 'Build.BinariesDirectory: $(Build.BinariesDirectory)'
+            echo 'Build.ArtifactStagingDirectory: $(Build.ArtifactStagingDirectory)'
+            echo 'Build.BuildId: $(Build.BuildId)'
+            echo 'System.DefaultWorkingDirectory: $(System.DefaultWorkingDirectory)'
+            echo 'Other: $(Build.SourcesDirectory) and $(Agent.BuildDirectory)'
+            echo pwd
+            ls -la
+            echo '---'
+            ls -la $(Build.ArtifactStagingDirectory)
+          displayName: 'TODO Print env var'          
+
+
   # C) Deploy to STAGING only if there is a push on 'master' branch.
   # Other conditions based on variables settings:
   # - if $DO_DEPLOY != True (or undefined) skip deployment, otherwise:
@@ -190,7 +212,9 @@ stages:
             echo 'Other: $(Build.SourcesDirectory) and $(Agent.BuildDirectory)'
             echo pwd
             ls -la
-          displayName: 'Print env var'
+            echo '---'
+            ls -la $(Build.ArtifactStagingDirectory)            
+          displayName: 'TODO Print env var'
 
         - bash: |
             yarn predeploy
@@ -282,7 +306,7 @@ stages:
             archiveFile: 'dist.zip'
             replaceExistingArchive: true
             verbose: true
-            
+
 
         # d1) First option: standard deployment in PROD (without swapping slots)
         - task: AzureFunctionApp@1
