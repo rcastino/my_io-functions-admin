@@ -47,6 +47,7 @@ stages:
       - job: compile
         steps:
         - task: Cache@2
+          condition: false
           inputs:
             key: 'yarn | "$(Agent.OS)" | yarn.lock'
             restoreKeys: |
@@ -56,7 +57,7 @@ stages:
           displayName: Cache yarn packages
 
         - script: |
-            yarn install --cache-folder $(YARN_CACHE_FOLDER) --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
+            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
           displayName: 'Install node modules'
 
         - bash: |
@@ -65,9 +66,9 @@ stages:
 
       # A2) Analyze source code to find errors with lint
       - job: lint
-        dependsOn: [compile] # TODO remove
         steps:        
         - task: Cache@2
+          condition: false 
           inputs:
             key: 'yarn | "$(Agent.OS)" | yarn.lock'
             restoreKeys: |
@@ -76,9 +77,8 @@ stages:
             path: $(YARN_CACHE_FOLDER)
           displayName: Cache yarn packages
 
-        
         - script: |
-            yarn install --cache-folder $(YARN_CACHE_FOLDER) --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
+            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
           displayName: 'Install node modules'
 
         - script: |
@@ -111,7 +111,7 @@ stages:
           displayName: Cache yarn packages
 
         - script: |
-            yarn install --cache-folder $(YARN_CACHE_FOLDER) --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
+            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
           displayName: 'Install node modules'
 
         - bash: |
@@ -121,7 +121,7 @@ stages:
 
   # B) Run unit tests if there is a push or pull request on any branch.
   - stage: Test
-    dependsOn: [Build] # TODO remove build
+    dependsOn: []
     jobs:
       - job: unit_tests
         steps:
@@ -140,7 +140,7 @@ stages:
           displayName: Cache yarn packages
 
         - script: |
-            yarn install --cache-folder $(YARN_CACHE_FOLDER) --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
+            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
           displayName: 'Install node modules'
 
         - script: |
