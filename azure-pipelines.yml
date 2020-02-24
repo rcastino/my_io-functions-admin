@@ -72,7 +72,8 @@ stages:
                 eq(variables['DO_DEPLOY'], True),
                 or(
                   eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-                  eq(variables['Build.SourceBranch'], 'refs/tags/latest')
+                  eq(variables['Build.SourceBranch'], 'refs/tags/latest'),
+                  eq(variables['STAGING_FORCE_DEPLOY'], True)
                 )
               )
             )
