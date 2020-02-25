@@ -143,8 +143,6 @@ stages:
 
   # B) Run unit tests if there is a push or pull request on any branch.
   - stage: Test
-    pool:
-      vmImage: 'ubuntu-16.04'
     dependsOn: []
     jobs:
       - job: unit_tests
@@ -168,7 +166,6 @@ stages:
           displayName: 'Install node modules'
 
         - script: |
-            ls ./node_modules/.bin/
             yarn test:coverage
           displayName: 'Unit tests exec'
 
@@ -183,6 +180,8 @@ stages:
   #   - c1) $DEPLOY_TO_SLOT != True (or undefined): deploy to STAGING environment
   #   - c2) $DEPLOY_TO_SLOT == True: deploy to staging slot in PROD environment
   - stage: Deploy_staging
+    pool:
+      vmImage: 'ubuntu-16.04'
     condition: and(
         succeeded(),
         and (
