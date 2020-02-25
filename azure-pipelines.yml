@@ -45,8 +45,6 @@ pool:
 stages:
   # A) Build and code validation
   - stage: Build
-    pool:
-      vmImage: 'windows-2019'
     dependsOn: []
     condition: false
     jobs:
