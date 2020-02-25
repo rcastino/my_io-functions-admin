@@ -43,9 +43,40 @@ pool:
   vmImage: 'windows-2019'
 
 stages:
+  # A) TODO: remove
+  - stage: Check_var
+    dependsOn: []
+    condition: and(
+        succeeded(),
+        and (
+          eq(variables['DO_DEPLOY'], True),
+          or(
+            eq(variables['Build.SourceBranch'], 'refs/heads/master'),
+            eq(variables['STAGING_FORCE_DEPLOY'], True)
+          )
+        )
+      )     
+    jobs:    
+      # A1) Checkout, install module and build distribution artifacts
+      - job: myscript 
+        steps:
+        - script: |
+            echo 'Build.SourceBranch: $(Build.SourceBranch)'
+            echo 'DO_DEPLOY: $(DO_DEPLOY)'
+            echo 'STAGING_FORCE_DEPLOY: $(STAGING_FORCE_DEPLOY)'
+          displayName: 'Echo var'
+
+
+
+
+
+
+
+
   # A) Build and code validation
   - stage: Build
     dependsOn: []
+    condition: false
     jobs:
       # A1) Checkout, install module and build distribution artifacts
       - job: make_build
@@ -144,6 +175,7 @@ stages:
   # B) Run unit tests if there is a push or pull request on any branch.
   - stage: Test
     dependsOn: []
+    condition: false
     jobs:
       - job: unit_tests
         steps:
