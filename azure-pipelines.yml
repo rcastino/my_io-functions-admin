@@ -39,13 +39,14 @@ trigger:
 # on 'windows' and 'ubuntu' virtual machine images and using the scripts defined
 # in the package.json file. Since we are deploying on Azure functions on Windows
 # runtime, the pipeline is currently configured to use a Windows hosted image.
-
+pool:
+  vmImage: 'ubuntu'
 
 stages:
   # A) Build and code validation
   - stage: Build
     pool:
-      vmImage: 'windows-2019'
+      vmImage: 'ubuntu'
     dependsOn: []
     condition: false
     jobs:
