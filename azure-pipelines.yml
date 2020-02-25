@@ -46,14 +46,15 @@ stages:
   # A) TODO: remove
   - stage: Check_var
     dependsOn: []
-    condition:
-      succeeded(),
-      and (
-        eq(variables['DO_DEPLOY'], True),
-        or(
-          eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-          eq(variables['Build.SourceBranch'], 'refs/tags/latest'),
-          eq(variables['STAGING_FORCE_DEPLOY'], True)
+    condition: and(
+        succeeded(),
+        and (
+          eq(variables['DO_DEPLOY'], True),
+          or(
+            eq(variables['Build.SourceBranch'], 'refs/heads/master'),
+            eq(variables['Build.SourceBranch'], 'refs/tags/latest'),
+            eq(variables['STAGING_FORCE_DEPLOY'], True)
+          )
         )
       )
     jobs:    
