@@ -39,8 +39,7 @@ trigger:
 # on 'windows' and 'ubuntu' virtual machine images and using the scripts defined
 # in the package.json file. Since we are deploying on Azure functions on Windows
 # runtime, the pipeline is currently configured to use a Windows hosted image.
-pool:
-  vmImage: 'ubuntu'
+
 
 stages:
   # A) Build and code validation
@@ -184,6 +183,8 @@ stages:
   #   - c1) $DEPLOY_TO_SLOT != True (or undefined): deploy to STAGING environment
   #   - c2) $DEPLOY_TO_SLOT == True: deploy to staging slot in PROD environment
   - stage: Deploy_staging
+    pool:
+      vmImage: 'ubuntu' 
     condition: and(
         succeeded(),
         and (
