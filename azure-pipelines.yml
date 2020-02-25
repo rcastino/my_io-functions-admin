@@ -168,6 +168,7 @@ stages:
           displayName: 'Install node modules'
 
         - script: |
+            ls ./node_modules/.bin/
             yarn test:coverage
           displayName: 'Unit tests exec'
 
