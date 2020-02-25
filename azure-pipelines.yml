@@ -40,42 +40,13 @@ trigger:
 # in the package.json file. Since we are deploying on Azure functions on Windows
 # runtime, the pipeline is currently configured to use a Windows hosted image.
 pool:
-  vmImage: 'windows-2019'
+  vmImage: 'ubuntu'
 
 stages:
-  # A) TODO: remove
-  - stage: Check_var
-    dependsOn: []
-    condition: and(
-        succeeded(),
-        and (
-          eq(variables['DO_DEPLOY'], True),
-          or(
-            eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-            eq(variables['Build.SourceBranch'], 'refs/tags/latest'),
-            eq(variables['STAGING_FORCE_DEPLOY'], True)
-          )
-        )
-      )
-    jobs:    
-      # A1) Checkout, install module and build distribution artifacts
-      - job: myscript 
-        steps:
-        - script: |
-            echo 'Build.SourceBranch: $(Build.SourceBranch)'
-            echo 'DO_DEPLOY: $(DO_DEPLOY)'
-            echo 'STAGING_FORCE_DEPLOY: $(STAGING_FORCE_DEPLOY)'
-          displayName: 'Echo var'
-
-
-
-
-
-
-
-
   # A) Build and code validation
   - stage: Build
+    pool:
+      vmImage: 'windows-2019'
     dependsOn: []
     condition: false
     jobs:
