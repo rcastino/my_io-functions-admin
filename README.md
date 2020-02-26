@@ -19,4 +19,4 @@ they may be customized as needed.
 | AZURE_APIM_RESOURCE_GROUP              | The name of the resource group used to get the subscriptions                                       | string  |
 | AZURE_SUBSCRIPTION_ID                  | Credentials which identify the Azure subscription, used to init the APIM  client                   | string  | 
 
-RAI 3
+RAI 4
