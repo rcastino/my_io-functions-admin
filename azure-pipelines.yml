@@ -196,7 +196,7 @@ stages:
 
         - task: CopyFiles@2
           inputs:
-            SourceFolder: '.'
+            SourceFolder: '$(System.DefaultWorkingDirectory)'
             TargetFolder: '$(Build.ArtifactStagingDirectory)'
             Contents: |
               **/*
@@ -209,16 +209,21 @@ stages:
               !tsconfig.json
           displayName: 'Copy build files' 
 
+        - script: |
+            ls -la $(System.DefaultWorkingDirectory)
+            ls -la $(Build.ArtifactStagingDirectory)
+          displayName: 'LS to remove'
+
         - task: ArchiveFiles@2
           inputs:
-            rootFolderOrFile: '$(System.ArtifactStagingDirectory)'
+            rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
             includeRootFolder: false
             archiveType: 'zip'
-            archiveFile: '$(System.ArtifactStagingDirectory)/dist.zip'
+            archiveFile: '$(Build.ArtifactStagingDirectory)/dist.zip'
           displayName: 'Make deployment zip'
 
         - script: |
-            ls -la $(System.ArtifactStagingDirectory)
+            ls -la $(Build.ArtifactStagingDirectory)
           displayName: 'LS to remove'
 
         # c1) First option: standard deployment in STAGING env (without slots)
@@ -229,7 +234,7 @@ stages:
             resourceGroupName: '$(STAGING_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(STAGING_FUNCTION_APP_NAME)'
-            package: '$(System.ArtifactStagingDirectory)/dist.zip'
+            package: '$(Build.ArtifactStagingDirectory)/dist.zip'
             deploymentMethod: 'auto'
           displayName: Deploy to staging env
 
@@ -244,7 +249,7 @@ stages:
             resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(PRODUCTION_FUNCTION_APP_NAME)'
-            package: '$(System.ArtifactStagingDirectory)/dist.zip'
+            package: '$(Build.ArtifactStagingDirectory)/dist.zip'
             deploymentMethod: 'auto'
             deployToSlotOrASE: true
             slotName: 'staging'
