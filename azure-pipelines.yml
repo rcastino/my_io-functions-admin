@@ -161,8 +161,6 @@ stages:
   #   - c1) $DEPLOY_TO_SLOT != True (or undefined): deploy to STAGING environment
   #   - c2) $DEPLOY_TO_SLOT == True: deploy to staging slot in PROD environment
   - stage: Deploy_staging
-    pool:
-      vmImage: 'ubuntu-16.04'
     condition: and(
         succeeded(),
         and (
