@@ -194,29 +194,32 @@ stages:
             yarn predeploy
           displayName: 'Build distribution'
 
-        # Publish the build artifacts: the '.artifactignore' file is used to
-        # control what files are uploaded
-        - task: PublishPipelineArtifact@1
+        - task: CopyFiles@2
           inputs:
-            targetPath: $(System.DefaultWorkingDirectory)/
-            artifact: 'dist'
-            publishLocation: 'pipeline'
-          displayName: Publish build artifacts
-
-        - task: DownloadPipelineArtifact@2
-          inputs:
-            buildType: 'current'
-            artifactName: 'dist'
-            targetPath: '$(System.DefaultWorkingDirectory)/tmp'
-          displayName: 'Download build artifacts'
+            SourceFolder: $(Build.DefaultWorkingDirectory)
+            TargetFolder: $(Build.ArtifactStagingDirectory)
+            Contents: |
+              **/*
+              !.git/**/*
+              !*.js.map
+              !*.ts
+              !.vscode
+              !local.settings.json
+              !test
+              !tsconfig.json
+          displayName: 'Copy build files' 
 
         - task: ArchiveFiles@2
           inputs:
-            rootFolderOrFile: '$(System.DefaultWorkingDirectory)/tmp'
+            rootFolderOrFile: '$(System.ArtifactStagingDirectory)'
             includeRootFolder: false
             archiveType: 'zip'
-            archiveFile: 'dist.zip'
+            archiveFile: '$(System.ArtifactStagingDirectory)/dist.zip'
           displayName: 'Make deployment zip'
+
+        - script: |
+            ls -la $(System.ArtifactStagingDirectory)
+          displayName: 'LS to remove'
 
         # c1) First option: standard deployment in STAGING env (without slots)
         - task: AzureFunctionApp@1
@@ -226,7 +229,7 @@ stages:
             resourceGroupName: '$(STAGING_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(STAGING_FUNCTION_APP_NAME)'
-            package: '$(System.DefaultWorkingDirectory)/tmp/dist.zip'
+            package: '$(System.ArtifactStagingDirectory)/dist.zip'
             deploymentMethod: 'auto'
           displayName: Deploy to staging env
 
@@ -241,7 +244,7 @@ stages:
             resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(PRODUCTION_FUNCTION_APP_NAME)'
-            package: '$(System.DefaultWorkingDirectory)/tmp/dist.zip'
+            package: '$(System.ArtifactStagingDirectory)/dist.zip'
             deploymentMethod: 'auto'
             deployToSlotOrASE: true
             slotName: 'staging'
