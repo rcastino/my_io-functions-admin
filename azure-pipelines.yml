@@ -64,28 +64,9 @@ stages:
           displayName: 'Install node modules'
 
         - bash: |
-            yarn predeploy
-          displayName: 'Build distribution'
+            yarn build
+          displayName: 'Build code'
 
-        # Publish the build artifacts only if deployment is not skipped.
-        # The '.artifactignore' file is used to control what files are uploaded
-        - task: PublishPipelineArtifact@1
-          condition: and(
-              succeeded(),
-              and (
-                eq(variables['DO_DEPLOY'], True),
-                or(
-                  eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-                  eq(variables['Build.SourceBranch'], 'refs/tags/latest'),
-                  eq(variables['STAGING_FORCE_DEPLOY'], True)
-                )
-              )
-            )
-          inputs:
-            targetPath: $(System.DefaultWorkingDirectory)/
-            artifact: 'dist'
-            publishLocation: 'pipeline'
-          displayName: Publish build artifacts
 
       # A2) Analyze source code to find errors with lint
       - job: lint
@@ -198,18 +179,42 @@ stages:
     jobs:
       - job: deploy_to_staging
         steps:
-        - checkout: none
+        - task: Cache@2
+          inputs:
+            key: 'yarn | "$(Agent.OS)" | yarn.lock'
+            restoreKeys: |
+              yarn | "$(Agent.OS)"
+              yarn
+            path: $(YARN_CACHE_FOLDER)
+          displayName: Cache yarn packages
+
+        - script: |
+            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
+          displayName: 'Install node modules'
+
+        - bash: |
+            yarn predeploy
+          displayName: 'Build distribution'
+
+        # Publish the build artifacts: the '.artifactignore' file is used to
+        # control what files are uploaded
+        - task: PublishPipelineArtifact@1
+          inputs:
+            targetPath: $(System.DefaultWorkingDirectory)/
+            artifact: 'dist'
+            publishLocation: 'pipeline'
+          displayName: Publish build artifacts
 
         - task: DownloadPipelineArtifact@2
           inputs:
             buildType: 'current'
             artifactName: 'dist'
-            targetPath: '$(System.DefaultWorkingDirectory)'
+            targetPath: '$(System.DefaultWorkingDirectory)/tmp'
           displayName: 'Download build artifacts'
 
         - task: ArchiveFiles@2
           inputs:
-            rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+            rootFolderOrFile: '$(System.DefaultWorkingDirectory)/tmp'
             includeRootFolder: false
             archiveType: 'zip'
             archiveFile: 'dist.zip'
@@ -223,7 +228,7 @@ stages:
             resourceGroupName: '$(STAGING_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(STAGING_FUNCTION_APP_NAME)'
-            package: '$(System.DefaultWorkingDirectory)/dist.zip'
+            package: '$(System.DefaultWorkingDirectory)/tmp/dist.zip'
             deploymentMethod: 'auto'
           displayName: Deploy to staging env
 
@@ -238,7 +243,7 @@ stages:
             resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(PRODUCTION_FUNCTION_APP_NAME)'
-            package: '$(System.DefaultWorkingDirectory)/dist.zip'
+            package: '$(System.DefaultWorkingDirectory)/tmp/dist.zip'
             deploymentMethod: 'auto'
             deployToSlotOrASE: true
             slotName: 'staging'
@@ -268,22 +273,47 @@ stages:
     jobs:
       - job: deploy_to_production
         steps:
-        - checkout: none
+        - task: Cache@2
+          inputs:
+            key: 'yarn | "$(Agent.OS)" | yarn.lock'
+            restoreKeys: |
+              yarn | "$(Agent.OS)"
+              yarn
+            path: $(YARN_CACHE_FOLDER)
+          displayName: Cache yarn packages
+
+        - script: |
+            yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
+          displayName: 'Install node modules'
+
+        - bash: |
+            yarn predeploy
+          displayName: 'Build distribution'
+
+        # Publish the build artifacts: the '.artifactignore' file is used to
+        # control what files are uploaded
+        - task: PublishPipelineArtifact@1
+          inputs:
+            targetPath: $(System.DefaultWorkingDirectory)/
+            artifact: 'dist'
+            publishLocation: 'pipeline'
+          displayName: Publish build artifacts
 
         - task: DownloadPipelineArtifact@2
           inputs:
             buildType: 'current'
             artifactName: 'dist'
-            targetPath: '$(System.DefaultWorkingDirectory)'
+            targetPath: '$(System.DefaultWorkingDirectory)/tmp'
           displayName: 'Download build artifacts'
 
         - task: ArchiveFiles@2
           inputs:
-            rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+            rootFolderOrFile: '$(System.DefaultWorkingDirectory)/tmp'
             includeRootFolder: false
             archiveType: 'zip'
             archiveFile: 'dist.zip'
           displayName: 'Make deployment zip'
+
 
         # d1) First option: standard deployment in PROD (without swapping slots)
         - task: AzureFunctionApp@1
