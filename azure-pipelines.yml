@@ -196,8 +196,8 @@ stages:
 
         - task: CopyFiles@2
           inputs:
-            SourceFolder: $(Build.DefaultWorkingDirectory)
-            TargetFolder: $(Build.ArtifactStagingDirectory)
+            SourceFolder: '$(Build.DefaultWorkingDirectory)'
+            TargetFolder: '$(Build.ArtifactStagingDirectory)'
             Contents: |
               **/*
               !.git/**/*
