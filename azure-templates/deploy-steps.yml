@@ -1,4 +1,5 @@
-# Azure DevOps template used to perform the deploy steps. 
+# Azure DevOps template used to perform all the deploy steps including build. 
+#
 # Note. Deployment slots let you deploy different versions of your function
 # app to different URLs. You can test a certain version and then swap content
 # and configuration between slots.
@@ -8,9 +9,9 @@ parameters:
   type: string
   default: 'deployToProductionSlot'
   values:
-  - deployToProductionSlot  
-  - deployToStagingSlot
-  - deployToStagingSlotAndSwap
+  - 'deployToProductionSlot'
+  - 'deployToStagingSlot'
+  - 'deployToStagingSlotAndSwap'
 
 - name: 'archiveFileName'
   type: string
@@ -44,7 +45,7 @@ steps:
       appName: '${{ parameters.appName }}'
       package: '$(Build.ArtifactStagingDirectory)/${{ parameters.archiveFileName }}'
       deploymentMethod: 'auto'
-    displayName: Deploy
+    displayName: Standard deploy
 
 - ${{ if eq(parameters.deployType, 'deployToStagingSlot') }}:
   # Option 2: deployment to 'staging' slot only
