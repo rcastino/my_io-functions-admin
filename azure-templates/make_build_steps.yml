@@ -5,6 +5,15 @@ parameters:
   type: boolean
   default: false
   
+parameters:
+- name: 'make'
+  default: none
+  type: string
+  values:
+  - build
+  - predeploy_build
+  - none
+  
 steps:
 - checkout: self
   displayName: 'Checkout'
@@ -22,10 +31,10 @@ steps:
     yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
   displayName: 'Install node modules'
 
-- ${{ if eq(parameters.preDeployBuild, true) }}:
+- ${{ if eq(parameters.make, 'predeploy_build') }}:
   - bash: yarn predeploy
     displayName: 'Predeploy build code'
 
-- ${{ if eq(parameters.preDeployBuild, false) }}:
+- ${{ if eq(parameters.make, 'build') }}:
   - bash: yarn build
     displayName: 'Build code'
