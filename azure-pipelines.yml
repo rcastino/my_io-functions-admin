@@ -114,11 +114,11 @@ stages:
           displayName: 'Code coverage'
 
 
-  # C) Deploy to STAGING only if there is a push on 'master' branch.
+  # C) Deploy to STAGE environment only if there is a push on 'master' branch.
   # Other conditions based on variables settings:
   # - if $DO_DEPLOY != True (or undefined) skip deployment, otherwise:
-  #   - c1) $DEPLOY_TO_SLOT != True (or undefined): deploy to STAGING environment
-  #   - c2) $DEPLOY_TO_SLOT == True: deploy to staging slot in PROD environment
+  #   - c1) $DEPLOY_TO_SLOT != True (or undefined): deploy to STAGE environment
+  #   - c2) $DEPLOY_TO_SLOT == True: deploy to staging slot in STAGE environment
   - stage: Deploy_staging
     condition: and(
         succeeded(),
@@ -136,39 +136,13 @@ stages:
     jobs:
       - job: deploy_to_staging
         steps:
-        # Make the package.zip file to be deployed
-        - template: azure-templates/prepare-deploy-steps.yml
+        # Make the build, prepare the package and deploy
+        - template: azure-templates/deploy-steps.yml
           parameters:
-            archiveFileName: package.zip
-
-        # c1) First option: standard deployment in STAGING env (without slots)
-        - task: AzureFunctionApp@1
-          condition: and(succeeded(), ne(variables['DEPLOY_TO_SLOT'], True))
-          inputs:
-            azureSubscription: '$(STAGING_AZURE_SUBSCRIPTION)'
-            resourceGroupName: '$(STAGING_RESOURCE_GROUP_NAME)'
-            appType: 'functionApp'
-            appName: '$(STAGING_FUNCTION_APP_NAME)'
-            package: '$(Build.ArtifactStagingDirectory)/package.zip'
-            deploymentMethod: 'auto'
-          displayName: Deploy to staging env
-
-        # c2) Alternative option: deployment to 'staging' slot in PROD env.
-        # Note. Deployment slots let you deploy different versions of your function
-        # app to different URLs. You can test a certain version and then swap content
-        # and configuration between slots.
-        - task: AzureFunctionApp@1
-          condition: and(succeeded(), eq(variables['DEPLOY_TO_SLOT'], True))
-          inputs:
-            azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
-            resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
-            appType: 'functionApp'
-            appName: '$(PRODUCTION_FUNCTION_APP_NAME)'
-            package: '$(Build.ArtifactStagingDirectory)/package.zip'
-            deploymentMethod: 'auto'
-            deployToSlotOrASE: true
-            slotName: 'staging'
-          displayName: Deploy to staging slot in prod env
+            deployToSlot: $DEPLOY_TO_SLOT
+            azureSubscription: $(STAGING_AZURE_SUBSCRIPTION)
+            resourceGroupName: $(STAGING_RESOURCE_GROUP_NAME)
+            appName: $(STAGING_FUNCTION_APP_NAME)
 
 
   # D) Deploy to PRODUCTION only if the 'latest' tag is pushed.
