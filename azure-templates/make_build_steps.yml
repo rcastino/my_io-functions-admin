@@ -1,9 +1,4 @@
 # Azure DevOps pipeline template used to checkout the code and install all node dependencies. 
-
-parameters:
-- name: preDeployBuild
-  type: boolean
-  default: false
   
 parameters:
 - name: 'make'
