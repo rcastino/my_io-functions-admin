@@ -50,14 +50,14 @@ stages:
       # A1) Checkout, install module and build code
       - job: make_build      
         steps:
-        - template: azure-templates/make_build_steps.yml
+        - template: azure-templates/make-build-steps.yml
           parameters:
             make: build
             
       # A2) Analyze source code to find errors with lint
       - job: lint
         steps:
-        - template: azure-templates/make_build_steps.yml
+        - template: azure-templates/make-build-steps.yml
           parameters:
             make: none
 
@@ -81,7 +81,7 @@ stages:
             )
           )
         steps:
-        - template: azure-templates/make_build_steps.yml
+        - template: azure-templates/make-build-steps.yml
           parameters:
             make: none
 
@@ -101,7 +101,7 @@ stages:
             version: $(NODE_VERSION)
           displayName: 'Set up Node.js'
 
-        - template: azure-templates/make_build_steps.yml
+        - template: azure-templates/make-build-steps.yml
           parameters:
             make: none
 
@@ -136,7 +136,10 @@ stages:
     jobs:
       - job: deploy_to_staging
         steps:
-        - template: azure-templates/prepare-deploy_steps.yml
+        # Make the package.zip file to be deployed
+        - template: azure-templates/prepare-deploy-steps.yml
+          parameters:
+            archiveFileName: package.zip
 
         # c1) First option: standard deployment in STAGING env (without slots)
         - task: AzureFunctionApp@1
