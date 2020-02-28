@@ -6,7 +6,7 @@ parameters:
   type: string
   
 steps:
-- template: ./make_build_steps.yml
+- template: ./make-build-steps.yml
   parameters:
     make: predeploy_build
 
