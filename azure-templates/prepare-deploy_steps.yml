@@ -1,0 +1,29 @@
+# Azure DevOps template used to perform all the steps to make the package to deploy. 
+
+steps:
+- template: ./make_build_steps.yml
+  parameters:
+    make: predeploy_build
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(System.DefaultWorkingDirectory)'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    Contents: |
+      **/*
+      !.git/**/*
+      !**/*.js.map
+      !**/*.ts
+      !.vscode/**/*
+      !local.settings.json
+      !test
+      !tsconfig.json
+  displayName: 'Copy deploy files' 
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/package.zip'
+  displayName: 'Make deployment zip'
