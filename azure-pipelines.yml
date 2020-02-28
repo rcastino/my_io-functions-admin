@@ -47,7 +47,7 @@ stages:
   - stage: Build
     dependsOn: []
     jobs:
-      # A1) Checkout, install module and build distribution artifacts
+      # A1) Checkout, install module and build
       - job: make_build
         steps:
         - task: Cache@2
@@ -192,7 +192,7 @@ stages:
 
         - bash: |
             yarn predeploy
-          displayName: 'Build distribution'
+          displayName: 'Build deploy files'
 
         - task: CopyFiles@2
           inputs:
@@ -207,18 +207,14 @@ stages:
               !local.settings.json
               !test
               !tsconfig.json
-          displayName: 'Copy build files' 
-
-        - script: |
-            ls -la $(Build.ArtifactStagingDirectory)
-          displayName: 'LS to remove'
+          displayName: 'Copy deploy files' 
 
         - task: ArchiveFiles@2
           inputs:
             rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
             includeRootFolder: false
             archiveType: 'zip'
-            archiveFile: '$(Build.ArtifactStagingDirectory)/dist.zip'
+            archiveFile: '$(Build.ArtifactStagingDirectory)/package.zip'
           displayName: 'Make deployment zip'
 
         # c1) First option: standard deployment in STAGING env (without slots)
@@ -229,7 +225,7 @@ stages:
             resourceGroupName: '$(STAGING_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(STAGING_FUNCTION_APP_NAME)'
-            package: '$(Build.ArtifactStagingDirectory)/dist.zip'
+            package: '$(Build.ArtifactStagingDirectory)/package.zip'
             deploymentMethod: 'auto'
           displayName: Deploy to staging env
 
@@ -244,7 +240,7 @@ stages:
             resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(PRODUCTION_FUNCTION_APP_NAME)'
-            package: '$(Build.ArtifactStagingDirectory)/dist.zip'
+            package: '$(Build.ArtifactStagingDirectory)/package.zip'
             deploymentMethod: 'auto'
             deployToSlotOrASE: true
             slotName: 'staging'
@@ -289,7 +285,7 @@ stages:
 
         - bash: |
             yarn predeploy
-          displayName: 'Build distribution'
+          displayName: 'Build deploy files'
 
         - task: CopyFiles@2
           inputs:
@@ -304,14 +300,14 @@ stages:
               !local.settings.json
               !test
               !tsconfig.json
-          displayName: 'Copy build files' 
+          displayName: 'Copy deploy files' 
 
         - task: ArchiveFiles@2
           inputs:
             rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
             includeRootFolder: false
             archiveType: 'zip'
-            archiveFile: '$(Build.ArtifactStagingDirectory)/dist.zip'
+            archiveFile: '$(Build.ArtifactStagingDirectory)/package.zip'
           displayName: 'Make deployment zip'
 
         # d1) First option: standard deployment in PROD (without swapping slots)
@@ -322,7 +318,7 @@ stages:
             resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(PRODUCTION_FUNCTION_APP_NAME)'
-            package: '$(System.DefaultWorkingDirectory)/dist.zip'
+            package: '$(System.DefaultWorkingDirectory)/package.zip'
             deploymentMethod: 'auto'
           displayName: Deploy to production env
 
