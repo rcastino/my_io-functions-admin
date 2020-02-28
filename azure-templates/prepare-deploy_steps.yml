@@ -1,5 +1,10 @@
 # Azure DevOps template used to perform all the steps to make the package to deploy. 
 
+parameters:
+- name: 'archiveFileName'
+  default: package.zip
+  type: string
+  
 steps:
 - template: ./make_build_steps.yml
   parameters:
@@ -25,5 +30,5 @@ steps:
     rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
     includeRootFolder: false
     archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/package.zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/${{ parameters.archiveFileName }}'
   displayName: 'Make deployment zip'
