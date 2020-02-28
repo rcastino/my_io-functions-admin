@@ -31,7 +31,7 @@ steps:
     make: predeploy_build
 
 # Generate the package zip file to be deployed
-- template: azure-templates/prepare-deploy-steps.yml
+- template: ./prepare-deploy-steps.yml
   parameters:
     archiveFileName: ${{ parameters.archiveFileName }}
 
