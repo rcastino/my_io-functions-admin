@@ -172,7 +172,7 @@ stages:
         # Make the build, prepare the package and deploy
         - template: azure-templates/deploy-steps.yml
           parameters:
-            deployToSlot: '$(DEPLOY_TO_SLOT)'
-            azureSubscription: $(PRODUCTION_AZURE_SUBSCRIPTION)
-            resourceGroupName: $(PRODUCTION_RESOURCE_GROUP_NAME)
-            appName: $(PRODUCTION_FUNCTION_APP_NAME)
+            deployToSlot: variables['DEPLOY_TO_SLOT)']
+            azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
+            resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
+            appName: '$(PRODUCTION_FUNCTION_APP_NAME)'
