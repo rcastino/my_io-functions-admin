@@ -319,7 +319,7 @@ stages:
             resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(PRODUCTION_FUNCTION_APP_NAME)'
-            package: '$(System.DefaultWorkingDirectory)/package.zip'
+            package: '$(Build.ArtifactStagingDirectory)/package.zip'
             deploymentMethod: 'auto'
           displayName: Deploy to production env
 
@@ -335,7 +335,7 @@ stages:
             resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
             appType: 'functionApp'
             appName: '$(PRODUCTION_FUNCTION_APP_NAME)'
-            package: '$(System.DefaultWorkingDirectory)/dist.zip'
+            package: '$(Build.ArtifactStagingDirectory)/package.zip'
             deploymentMethod: 'auto'
             deployToSlotOrASE: true
             slotName: 'staging'
