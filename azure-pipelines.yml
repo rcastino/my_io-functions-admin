@@ -260,7 +260,8 @@ stages:
           eq(variables['DO_DEPLOY'], True),
           or(
             eq(variables['Build.SourceBranch'], 'refs/tags/latest'),
-            eq(variables['PRODUCTION_FORCE_DEPLOY'], True)
+            eq(variables['PRODUCTION_FORCE_DEPLOY'], True),
+            eq(variables['Build.Reason'], 'Manual')
           )
         )
       )
