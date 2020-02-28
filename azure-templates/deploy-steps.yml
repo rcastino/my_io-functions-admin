@@ -1,0 +1,74 @@
+# Azure DevOps template used to perform the deploy steps. 
+# Note. Deployment slots let you deploy different versions of your function
+# app to different URLs. You can test a certain version and then swap content
+# and configuration between slots.
+
+parameters:
+- name: 'deployToSlot'
+  type: boolean
+  default: false
+
+- name: 'archiveFileName'
+  type: string
+  default: 'package.zip'
+
+- name: 'azureSubscription'
+  type: string
+  default: ''
+
+- name: 'resourceGroupName'
+  type: string
+  default: ''
+
+- name: 'appName'
+  type: string
+  default: ''
+    
+steps:
+# Make the build to generate the files to be deployed
+- template: ./make-build-steps.yml
+  parameters:
+    make: predeploy_build
+
+# Generate the package zip file to be deployed
+- template: azure-templates/prepare-deploy-steps.yml
+  parameters:
+    archiveFileName: ${{ parameters.archiveFileName }}
+
+- ${{ if eq(parameters.deployToSlot, false) }}:
+  # Option 1: standard deployment without slots
+  - task: AzureFunctionApp@1
+    inputs:
+      azureSubscription: '${{ parameters.azureSubscription }}'
+      resourceGroupName: '${{ parameters.resourceGroupName }}'
+      appType: 'functionApp'
+      appName: '${{ parameters.appName }}'
+      package: '$(Build.ArtifactStagingDirectory)/${{ parameters.archiveFileName }}'
+      deploymentMethod: 'auto'
+    displayName: Deploy
+
+- ${{ if eq(parameters.deployToSlot, true) }}:
+  # Option 2: deployment with slots ('staging' and 'production')
+  # First step: deploy to 'staging' slot 
+  - task: AzureFunctionApp@1
+    inputs:
+      azureSubscription: '${{ parameters.azureSubscription }}'
+      resourceGroupName: '${{ parameters.resourceGroupName }}'
+      appType: 'functionApp'
+      appName: '${{ parameters.appName }}'
+      package: '$(Build.ArtifactStagingDirectory)/${{ parameters.archiveFileName }}'
+      deploymentMethod: 'auto'
+      deployToSlotOrASE: true
+      slotName: 'staging'
+    displayName: Deploy to staging slot
+    
+  # Second step: swap 'staging' with 'production' slot
+  - task: AzureAppServiceManage@0
+    inputs:
+      azureSubscription: '${{ parameters.azureSubscription }}'
+      resourceGroupName: '${{ parameters.resourceGroupName }}'
+      webAppName: '${{ parameters.appName }}'
+      sourceSlot: staging
+      swapWithProduction: true
+    displayName: Swap with production slot
+    
