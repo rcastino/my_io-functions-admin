@@ -203,17 +203,16 @@ stages:
               !.git/**/*
               !*.js.map
               !*.ts
-              !.vscode
+              !.vscode/**/*
               !local.settings.json
               !test
               !tsconfig.json
           displayName: 'Copy build files' 
 
         - script: |
-            ls -la $(System.DefaultWorkingDirectory)
             ls -la $(Build.ArtifactStagingDirectory)
           displayName: 'LS to remove'
-
+          
         - task: ArchiveFiles@2
           inputs:
             rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
@@ -221,10 +220,6 @@ stages:
             archiveType: 'zip'
             archiveFile: '$(Build.ArtifactStagingDirectory)/dist.zip'
           displayName: 'Make deployment zip'
-
-        - script: |
-            ls -la $(Build.ArtifactStagingDirectory)
-          displayName: 'LS to remove'
 
         # c1) First option: standard deployment in STAGING env (without slots)
         - task: AzureFunctionApp@1
