@@ -201,8 +201,8 @@ stages:
             Contents: |
               **/*
               !.git/**/*
-              !*.js.map
-              !*.ts
+              !**/*.js.map
+              !**/*.ts
               !.vscode/**/*
               !local.settings.json
               !test
@@ -212,7 +212,7 @@ stages:
         - script: |
             ls -la $(Build.ArtifactStagingDirectory)
           displayName: 'LS to remove'
-          
+
         - task: ArchiveFiles@2
           inputs:
             rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
@@ -291,30 +291,28 @@ stages:
             yarn predeploy
           displayName: 'Build distribution'
 
-        # Publish the build artifacts: the '.artifactignore' file is used to
-        # control what files are uploaded
-        - task: PublishPipelineArtifact@1
+        - task: CopyFiles@2
           inputs:
-            targetPath: $(System.DefaultWorkingDirectory)/
-            artifact: 'dist'
-            publishLocation: 'pipeline'
-          displayName: Publish build artifacts
-
-        - task: DownloadPipelineArtifact@2
-          inputs:
-            buildType: 'current'
-            artifactName: 'dist'
-            targetPath: '$(System.DefaultWorkingDirectory)/tmp'
-          displayName: 'Download build artifacts'
+            SourceFolder: '$(System.DefaultWorkingDirectory)'
+            TargetFolder: '$(Build.ArtifactStagingDirectory)'
+            Contents: |
+              **/*
+              !.git/**/*
+              !**/*.js.map
+              !**/*.ts
+              !.vscode/**/*
+              !local.settings.json
+              !test
+              !tsconfig.json
+          displayName: 'Copy build files' 
 
         - task: ArchiveFiles@2
           inputs:
-            rootFolderOrFile: '$(System.DefaultWorkingDirectory)/tmp'
+            rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
             includeRootFolder: false
             archiveType: 'zip'
-            archiveFile: 'dist.zip'
+            archiveFile: '$(Build.ArtifactStagingDirectory)/dist.zip'
           displayName: 'Make deployment zip'
-
 
         # d1) First option: standard deployment in PROD (without swapping slots)
         - task: AzureFunctionApp@1
