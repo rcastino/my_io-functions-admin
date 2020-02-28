@@ -29,12 +29,7 @@ parameters:
   default: ''
     
 steps:
-# Make the build to generate the files to be deployed
-- template: ./make-build-steps.yml
-  parameters:
-    make: predeploy_build
-
-# Generate the package zip file to be deployed
+# Make the build and generate the package to be deployed
 - template: ./prepare-deploy-steps.yml
   parameters:
     archiveFileName: ${{ parameters.archiveFileName }}
