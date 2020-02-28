@@ -4,9 +4,13 @@
 # and configuration between slots.
 
 parameters:
-- name: 'deployToSlot'
-  type: boolean
-  default: false
+- name: 'deployType'
+  type: string
+  default: 'deployToProductionSlot'
+  values:
+  - deployToProductionSlot  
+  - deployToStagingSlot
+  - deployToStagingSlotAndSwap
 
 - name: 'archiveFileName'
   type: string
@@ -35,8 +39,8 @@ steps:
   parameters:
     archiveFileName: ${{ parameters.archiveFileName }}
 
-- ${{ if eq(parameters.deployToSlot, false) }}:
-  # Option 1: standard deployment without slots
+- ${{ if eq(parameters.deployType, 'deployToProductionSlot') }}:
+  # Option 1: standard deployment without slots (i.e. deploy directly to main slot)
   - task: AzureFunctionApp@1
     inputs:
       azureSubscription: '${{ parameters.azureSubscription }}'
@@ -47,8 +51,22 @@ steps:
       deploymentMethod: 'auto'
     displayName: Deploy
 
-- ${{ if eq(parameters.deployToSlot, true) }}:
-  # Option 2: deployment with slots ('staging' and 'production')
+- ${{ if eq(parameters.deployType, 'deployToStagingSlot') }}:
+  # Option 2: deployment to 'staging' slot only
+  - task: AzureFunctionApp@1
+    inputs:
+      azureSubscription: '${{ parameters.azureSubscription }}'
+      resourceGroupName: '${{ parameters.resourceGroupName }}'
+      appType: 'functionApp'
+      appName: '${{ parameters.appName }}'
+      package: '$(Build.ArtifactStagingDirectory)/${{ parameters.archiveFileName }}'
+      deploymentMethod: 'auto'
+      deployToSlotOrASE: true
+      slotName: 'staging'
+    displayName: Deploy to staging slot only
+
+- ${{ if eq(parameters.deployType, 'deployToStagingSlotAndSwap') }}:
+  # Option 3: deployment with two slots ('staging' and 'production')
   # First step: deploy to 'staging' slot 
   - task: AzureFunctionApp@1
     inputs:
@@ -71,4 +89,3 @@ steps:
       sourceSlot: staging
       swapWithProduction: true
     displayName: Swap with production slot
-    
