@@ -14,7 +14,7 @@ steps:
   displayName: 'Checkout'
       
 - task: Cache@2
-  inputs:_only
+  inputs:
     key: 'yarn | "$(Agent.OS)" | yarn.lock'
     restoreKeys: |
       yarn | "$(Agent.OS)"
