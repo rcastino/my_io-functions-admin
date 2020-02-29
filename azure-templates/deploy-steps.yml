@@ -26,6 +26,12 @@ parameters:
   default: ''
   
 steps:
+- bash: |
+    echo 'deployType: ${{ parameters.deployType }}'
+    echo 'azureSubscription: ${{ parameters.azureSubscription }}'
+  displayName: 'ECHO'
+
+
 - template: ./make-build-steps.yml
   parameters:
     make: predeploy_build
