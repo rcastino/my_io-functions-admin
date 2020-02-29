@@ -60,7 +60,7 @@ stages:
         steps:
         - template: azure-templates/make-build-steps.yml
           parameters:
-            make: none
+            make: install_dependencies
 
         - script: |
             yarn lint
@@ -84,7 +84,7 @@ stages:
         steps:
         - template: azure-templates/make-build-steps.yml
           parameters:
-            make: none
+            make: install_dependencies
 
         - bash: |
             yarn danger ci
@@ -104,7 +104,7 @@ stages:
 
         - template: azure-templates/make-build-steps.yml
           parameters:
-            make: none
+            make: install_dependencies
 
         - script: |
             yarn test:coverage
