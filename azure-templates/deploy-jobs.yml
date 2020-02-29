@@ -24,7 +24,7 @@ parameters:
 jobs:
   # Option 1: deploy directly to 'production' slot
   - job: deploy_standard
-    condition: and(succeeded(), eq(${{ parameters.deployMode }}, 'deploy_standard'))
+    condition: and(succeeded(), eq('${{ parameters.deployMode }}', 'deploy_standard'))
     steps:
     - template: ./deploy-steps.yml
       parameters:
@@ -35,7 +35,7 @@ jobs:
 
   # Option 2: deploy to staging slot and then swap with 'production' slot
   - job: deploy_to_slots
-    condition: and(succeeded(), eq(${{ parameters.deployType }}, 'deploy_to_slots'))
+    condition: and(succeeded(), eq('${{ parameters.deployMode }}', 'deploy_to_slots'))
     steps:
     - template: ./deploy-steps.yml
       parameters:
