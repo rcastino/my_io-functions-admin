@@ -8,10 +8,6 @@ parameters:
   - install_dependencies
   - build
   - predeploy_build
-- name: 'agentOS'
-  type: string
-  default: windows-2019
-
 
 steps:
 - checkout: self
@@ -19,9 +15,9 @@ steps:
       
 - task: Cache@2
   inputs:_only
-    key: 'yarn | "windows-2019" | yarn.lock'
+    key: 'yarn | "$(Agent.OS)" | yarn.lock'
     restoreKeys: |
-      yarn | "windows-2019"
+      yarn | "$(Agent.OS)"
       yarn
     path: $(Pipeline.Workspace)/.yarn
   displayName: Cache yarn packages
