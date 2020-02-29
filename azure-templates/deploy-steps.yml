@@ -24,10 +24,6 @@ parameters:
 - name: 'appName'
   type: string
   default: ''
-    
-- name: 'archiveFileName'
-  default: package.zip
-  type: string
   
 steps:
 - template: ./make-build-steps.yml
