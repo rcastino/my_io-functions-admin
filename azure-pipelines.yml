@@ -137,7 +137,10 @@ stages:
         and (
           eq(variables['DO_DEPLOY'], true),
           or(
-            eq(variables['Build.SourceBranch'], 'refs/heads/master'),
+            and(
+              eq(variables['Build.SourceBranch'], 'refs/heads/master'),
+              ne(variables['Build.Reason'], 'Manual')
+            ),
             and(
               eq(variables['STAGING_ENABLE_MANUAL_DEPLOY'], true),
               eq(variables['Build.Reason'], 'Manual')
@@ -190,7 +193,10 @@ stages:
         and (
           eq(variables['DO_DEPLOY'], true),
           or(
-            eq(variables['Build.SourceBranch'], 'refs/tags/latest'),
+            and(
+              eq(variables['Build.SourceBranch'], 'refs/tags/latest'),
+              ne(variables['Build.Reason'], 'Manual')
+            ),
             and(
               eq(variables['PRODUCTION_ENABLE_MANUAL_DEPLOY'], true),
               eq(variables['Build.Reason'], 'Manual')
