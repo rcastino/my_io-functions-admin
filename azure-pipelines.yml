@@ -118,8 +118,8 @@ stages:
   # C) Deploy to STAGE environment only if there is a push on 'master' branch.
   # Other conditions based on variables settings:
   # - if $DO_DEPLOY != True (or undefined) skip deployment, otherwise:
-  #   - c1) $STAGING_DEPLOY_TYPE != deployToStagingSlotAndSwap (or undef): deploy to 'prodution' slot
-  #   - c2) $STAGING_DEPLOY_TYPE == deployToStagingSlotAndSwap: deploy to 'staging' slot in PROD and 
+  #   - c1) $STAGING_DEPLOY_TYPE != deploy_to_slots (or undef): deploy to 'prodution' slot
+  #   - c2) $STAGING_DEPLOY_TYPE == deploy_to_slots: deploy to 'staging' slot in PROD and 
   #         then swap 'staging' slot with 'production' slot
   - stage: Deploy_staging
     condition: and(
@@ -137,8 +137,8 @@ stages:
     #- Test
     jobs:
       # Option 1: deploy directly to 'production' slot
-      - job: deploy_directly
-        condition: and(succeeded(), ne(variables['STAGING_DEPLOY_TYPE'], 'deployToStagingSlotAndSwap'))
+      - job: deploy_standard
+        condition: and(succeeded(), ne(variables['STAGING_DEPLOY_TYPE'], 'deploy_standard'))
         steps:
         - template: azure-templates/deploy-steps.yml
           parameters:
@@ -149,7 +149,7 @@ stages:
 
       # Option 2: deploy to staging slot and then swap with 'production' slot
       - job: deploy_to_slots
-        condition: and(succeeded(), eq(variables['STAGING_DEPLOY_TYPE'], 'deployToStagingSlotAndSwap'))
+        condition: and(succeeded(), eq(variables['STAGING_DEPLOY_TYPE'], 'deploy_to_slots'))
         steps:
         - template: azure-templates/deploy-steps.yml
           parameters:
@@ -162,8 +162,8 @@ stages:
   # D) Deploy to PRODUCTION only if the 'latest' tag is pushed.
   # Other conditions based on variables settings:
   # - if $DO_DEPLOY != True (or undefined) skip deployment, otherwise:
-  #   - c1) $PRODUCTION_DEPLOY_TYPE != deployToStagingSlotAndSwap (or undef): deploy to 'prodution' slot
-  #   - c2) $PRODUCTION_DEPLOY_TYPE == deployToStagingSlotAndSwap: deploy to 'staging' slot in PROD and 
+  #   - c1) $PRODUCTION_DEPLOY_TYPE != deploy_to_slots (or undef): deploy to 'prodution' slot
+  #   - c2) $PRODUCTION_DEPLOY_TYPE == deploy_to_slots: deploy to 'staging' slot in PROD and 
   #         then swap 'staging' slot with 'production' slot
   - stage: Deploy_production
     condition: and(
@@ -182,8 +182,8 @@ stages:
     - Test
     jobs:
       # Option 1: deploy directly to 'production' slot
-      - job: deploy_directly
-        condition: and(succeeded(), ne(variables['PRODUCTION_DEPLOY_TYPE'], 'deployToStagingSlotAndSwap'))
+      - job: deploy_standard
+        condition: and(succeeded(), ne(variables['PRODUCTION_DEPLOY_TYPE'], 'deploy_standard'))
         steps:
         - template: azure-templates/deploy-steps.yml
           parameters:
@@ -194,7 +194,7 @@ stages:
 
       # Option 2: deploy to staging slot and then swap with 'production' slot
       - job: deploy_to_slots
-        condition: and(succeeded(), eq(variables['PRODUCTION_DEPLOY_TYPE'], 'deployToStagingSlotAndSwap'))
+        condition: and(succeeded(), eq(variables['PRODUCTION_DEPLOY_TYPE'], 'deploy_to_slots'))
         steps:
         - template: azure-templates/deploy-steps.yml
           parameters:
