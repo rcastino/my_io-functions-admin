@@ -30,6 +30,12 @@ steps:
     echo 'deployType: ${{ parameters.deployType }}'
     echo 'azureSubscription: ${{ parameters.azureSubscription }}'
   displayName: 'ECHO'
+  
+- ${{ if eq(parameters.deployType, 'deployToProductionSlot') }}:
+  - bash: |
+      echo 'deployType: ${{ parameters.deployType }}'
+      echo 'azureSubscription: ${{ parameters.azureSubscription }}'
+    displayName: 'ECHO 2'  
 
 
 - template: ./make-build-steps.yml
