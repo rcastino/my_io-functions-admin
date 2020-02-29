@@ -1,5 +1,8 @@
 # Azure DevOps pipeline template used to checkout, install node dependencies and build the code. 
-  
+
+variables:
+  YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
+
 parameters:
 - name: 'make'
   type: string
@@ -8,16 +11,20 @@ parameters:
   - install_dependencies
   - build
   - predeploy_build
-  
+- name: 'agentOS'
+  type: string
+  default: windows-2019
+
+
 steps:
 - checkout: self
   displayName: 'Checkout'
       
 - task: Cache@2
   inputs:_only
-    key: 'yarn | "$(Agent.OS)" | yarn.lock'
+    key: 'yarn | "${{ parameters.agentOS }}" | yarn.lock'
     restoreKeys: |
-      yarn | "$(Agent.OS)"
+      yarn | "${{ parameters.agentOS }}"
       yarn
     path: $(YARN_CACHE_FOLDER)
   displayName: Cache yarn packages
