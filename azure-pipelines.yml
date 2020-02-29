@@ -2,10 +2,14 @@
 #
 # The following variables needs to be defined before running the deployment jobs 
 # defined in this pipeline:
-# - STAGING_DEPLOY_TYPE
+# - STAGING_DEPLOY_TYPE:
+#     deployToProductionSlot
+#     deployToStagingSlot
+#     deployToStagingSlotAndSwap
 # - STAGING_AZURE_SUBSCRIPTION
 # - STAGING_RESOURCE_GROUP_NAME
 # - STAGING_FUNCTION_APP_NAME
+# 
 # - PRODUCTION_DEPLOY_TYPE
 # - PRODUCTION_AZURE_SUBSCRIPTION
 # - PRODUCTION_RESOURCE_GROUP_NAME
@@ -130,9 +134,9 @@ stages:
           )
         )
       )
-    dependsOn:
-    - Build
-    - Test
+    dependsOn: []
+    #- Build
+    #- Test
     jobs:
       - job: deploy_to_staging
         steps:
