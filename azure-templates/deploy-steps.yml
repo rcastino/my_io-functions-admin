@@ -29,30 +29,7 @@ parameters:
 steps:
 - template: ./prepare-deploy-steps.yml
   parameters:
-    zipFileName: package.zip
-
-- task: CopyFiles@2
-  inputs:
-    SourceFolder: '$(System.DefaultWorkingDirectory)'
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
-    Contents: |
-      **/*
-      !.git/**/*
-      !**/*.js.map
-      !**/*.ts
-      !.vscode/**/*
-      !local.settings.json
-      !test
-      !tsconfig.json
-  displayName: 'Copy deploy files' 
-
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
-    includeRootFolder: false
-    archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/${{ parameters.archiveFileName }}'
-  displayName: 'Make deployment zip'
+    zipFileName: deploy_package.zip
 
 # Option 1: standard deployment without slots (i.e. deploy directly to main slot)
 - ${{ if eq(parameters.deployType, 'deployToProductionSlot') }}:
