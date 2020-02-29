@@ -27,9 +27,30 @@ parameters:
   default: ''
   
 steps:
-- template: ./prepare-deploy-steps.yml
+- template: ./make-build-steps.yml
   parameters:
-    zipFileName: deploy_package.zip
+    make: predeploy_build
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(System.DefaultWorkingDirectory)'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    Contents: |
+      **/*
+      !.git/**/*
+      !**/*.js.map
+      !**/*.ts
+      !.vscode/**/*
+      !azure-templates/**/*
+      !azure-pipelines.yml
+      !.prettierrc
+      !.gitignore
+      !README.md
+      !jest.config.js
+      !local.settings.json
+      !test
+      !tsconfig.json
+  displayName: 'Copy deploy files'
 
 # Option 1: standard deployment without slots (i.e. deploy directly to main slot)
 - ${{ if eq(parameters.deployType, 'deployToProductionSlot') }}:
