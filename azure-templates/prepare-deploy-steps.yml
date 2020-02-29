@@ -20,6 +20,9 @@ steps:
       !**/*.js.map
       !**/*.ts
       !.vscode/**/*
+      !azure-templates/**/*
+      !azure-pipelines.yml
+      !.prettierrc
       !local.settings.json
       !test
       !tsconfig.json
