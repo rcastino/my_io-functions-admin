@@ -138,7 +138,7 @@ stages:
     jobs:
       # Option 1: deploy directly to 'production' slot
       - job: deploy_standard
-        condition: and(succeeded(), ne(variables['STAGING_DEPLOY_TYPE'], 'deploy_standard'))
+        condition: and(succeeded(), ne(variables['STAGING_DEPLOY_TYPE'], 'deploy_to_slots'))
         steps:
         - template: azure-templates/deploy-steps.yml
           parameters:
@@ -183,7 +183,7 @@ stages:
     jobs:
       # Option 1: deploy directly to 'production' slot
       - job: deploy_standard
-        condition: and(succeeded(), ne(variables['PRODUCTION_DEPLOY_TYPE'], 'deploy_standard'))
+        condition: and(succeeded(), ne(variables['PRODUCTION_DEPLOY_TYPE'], 'deploy_to_slots'))
         steps:
         - template: azure-templates/deploy-steps.yml
           parameters:
