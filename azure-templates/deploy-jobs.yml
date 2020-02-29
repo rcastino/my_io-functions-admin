@@ -4,9 +4,6 @@ parameters:
 - name: 'deployMode'
   type: string
   default: deploy_standard
-  values:
-  - deploy_standard
-  - deploy_to_slots
 
 - name: 'azureSubscription'
   type: string
