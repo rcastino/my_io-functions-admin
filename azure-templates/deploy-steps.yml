@@ -31,11 +31,19 @@ steps:
     echo 'azureSubscription: ${{ parameters.azureSubscription }}'
   displayName: 'ECHO'
   
-- ${{ if eq(parameters.deployType, '$(STAGING_DEPLOY_TYPE)') }}:
-  - bash: |
-      echo 'deployType: ${{ parameters.deployType }}'
-      echo 'azureSubscription: ${{ parameters.azureSubscription }}'
-    displayName: 'ECHO 2'  
+  
+- bash: |
+    echo 'deployType: ${{ parameters.deployType }}'
+    echo 'azureSubscription: ${{ parameters.azureSubscription }}'
+  displayName: 'ECHO 2'  
+  condition: and(succeeded(), eq(${{ parameters.deployType }}, 'deployToProductionSlot'))
+
+- bash: |
+    echo 'deployType: ${{ parameters.deployType }}'
+    echo 'azureSubscription: ${{ parameters.azureSubscription }}'
+  displayName: 'ECHO 3'  
+  condition: and(succeeded(), eq(${{ parameters.deployType }}, 'deployToStagingSlotAndSwap'))
+
 
 
 - template: ./make-build-steps.yml
