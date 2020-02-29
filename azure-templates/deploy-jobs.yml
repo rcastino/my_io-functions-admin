@@ -1,0 +1,45 @@
+# Azure DevOps template used to perform all the deploy jobs. 
+
+parameters:
+- name: 'deployMode'
+  type: string
+  default: deploy_standard
+  values:
+  - deploy_standard
+  - deploy_to_slots
+
+- name: 'azureSubscription'
+  type: string
+  default: ''
+
+- name: 'resourceGroupName'
+  type: string
+  default: ''
+
+- name: 'appName'
+  type: string
+  default: ''
+
+
+jobs:
+  # Option 1: deploy directly to 'production' slot
+  - job: deploy_standard
+    condition: and(succeeded(), eq(${{ parameters.deployType }}, 'deploy_standard'))
+    steps:
+    - template: ./deploy-steps.yml
+      parameters:
+        deployType: 'deployToProductionSlot'
+        azureSubscription: '${{ parameters.azureSubscription }}'
+        resourceGroupName: '${{ parameters.resourceGroupName }}'
+        appName: '${{ parameters.appName }}'
+
+  # Option 2: deploy to staging slot and then swap with 'production' slot
+  - job: deploy_to_slots
+    condition: and(succeeded(), eq(${{ parameters.deployType }}, 'deploy_to_slots'))
+    steps:
+    - template: ./deploy-steps.yml
+      parameters:
+        deployType: 'deployToStagingSlotAndSwap'
+        azureSubscription: '${{ parameters.azureSubscription }}'
+        resourceGroupName: '${{ parameters.resourceGroupName }}'
+        appName: '${{ parameters.appName }}'
