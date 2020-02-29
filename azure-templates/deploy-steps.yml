@@ -25,11 +25,37 @@ parameters:
   type: string
   default: ''
     
+- name: 'archiveFileName'
+  default: package.zip
+  type: string
+  
 steps:
-# Make the build and generate the package to be deployed
-- template: ./prepare-deploy-steps.yml
+- template: ./make-build-steps.yml
   parameters:
-    archiveFileName: ${{ parameters.archiveFileName }}
+    make: predeploy_build
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(System.DefaultWorkingDirectory)'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    Contents: |
+      **/*
+      !.git/**/*
+      !**/*.js.map
+      !**/*.ts
+      !.vscode/**/*
+      !local.settings.json
+      !test
+      !tsconfig.json
+  displayName: 'Copy deploy files' 
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/${{ parameters.archiveFileName }}'
+  displayName: 'Make deployment zip'
 
 # Option 1: standard deployment without slots (i.e. deploy directly to main slot)
 - ${{ if eq(parameters.deployType, 'deployToProductionSlot') }}:
