@@ -24,7 +24,7 @@ jobs:
     steps:
     - template: ./deploy-steps.yml
       parameters:
-        deployType: '${{ parameters.deployMode }}'
+        deployType: 'deployToProductionSlot'
         azureSubscription: '${{ parameters.azureSubscription }}'
         resourceGroupName: '${{ parameters.resourceGroupName }}'
         appName: '${{ parameters.appName }}'
@@ -34,7 +34,7 @@ jobs:
     steps:
     - template: ./deploy-steps.yml
       parameters:
-        deployType: '${{ parameters.deployMode }}'
+        deployType: 'deployToStagingSlotAndSwap'
         azureSubscription: '${{ parameters.azureSubscription }}'
         resourceGroupName: '${{ parameters.resourceGroupName }}'
         appName: '${{ parameters.appName }}'
