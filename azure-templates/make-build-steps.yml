@@ -1,8 +1,5 @@
 # Azure DevOps pipeline template used to checkout, install node dependencies and build the code. 
 
-variables:
-  YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
-
 parameters:
 - name: 'make'
   type: string
@@ -26,7 +23,7 @@ steps:
     restoreKeys: |
       yarn | "${{ parameters.agentOS }}"
       yarn
-    path: $(YARN_CACHE_FOLDER)
+    path: $(Pipeline.Workspace)/.yarn
   displayName: Cache yarn packages
 
 - script: |
