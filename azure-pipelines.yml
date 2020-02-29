@@ -138,7 +138,7 @@ stages:
     jobs:
     - template: azure-templates/deploy-jobs.yml
       parameters:
-        deployMode: '999'
+        deployMode: 'deploy_standard'
         azureSubscription: '$(STAGING_AZURE_SUBSCRIPTION)'
         resourceGroupName: '$(STAGING_RESOURCE_GROUP_NAME)'
         appName: '$(STAGING_FUNCTION_APP_NAME)'
