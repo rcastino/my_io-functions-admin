@@ -2,12 +2,12 @@
   
 parameters:
 - name: 'make'
-  default: 'install_dependencies'
   type: string
+  default: install_dependencies
   values:
-  - 'install_dependencies'
-  - 'build'
-  - 'predeploy_build'
+  - install_dependencies
+  - build
+  - predeploy_build
   
 steps:
 - checkout: self
