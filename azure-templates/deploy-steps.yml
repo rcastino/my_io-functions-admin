@@ -39,7 +39,7 @@ steps:
       resourceGroupName: '${{ parameters.resourceGroupName }}'
       appType: 'functionApp'
       appName: '${{ parameters.appName }}'
-      package: '$(Build.ArtifactStagingDirectory)/${{ parameters.archiveFileName }}'
+      package: '$(Build.ArtifactStagingDirectory)/'
       deploymentMethod: 'auto'
     displayName: Direct deploy
 
@@ -51,7 +51,7 @@ steps:
       resourceGroupName: '${{ parameters.resourceGroupName }}'
       appType: 'functionApp'
       appName: '${{ parameters.appName }}'
-      package: '$(Build.ArtifactStagingDirectory)/${{ parameters.archiveFileName }}'
+      package: '$(Build.ArtifactStagingDirectory)/'
       deploymentMethod: 'auto'
       deployToSlotOrASE: true
       slotName: 'staging'
@@ -65,7 +65,7 @@ steps:
       resourceGroupName: '${{ parameters.resourceGroupName }}'
       appType: 'functionApp'
       appName: '${{ parameters.appName }}'
-      package: '$(Build.ArtifactStagingDirectory)/${{ parameters.archiveFileName }}'
+      package: '$(Build.ArtifactStagingDirectory)/'
       deploymentMethod: 'auto'
       deployToSlotOrASE: true
       slotName: 'staging'
