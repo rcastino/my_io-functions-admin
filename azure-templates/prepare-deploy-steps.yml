@@ -18,6 +18,9 @@ steps:
       !azure-templates/**/*
       !azure-pipelines.yml
       !.prettierrc
+      !.gitignore
+      !README.md
+      !jest.config.js
       !local.settings.json
       !test
       !tsconfig.json
