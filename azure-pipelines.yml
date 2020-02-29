@@ -1,7 +1,18 @@
 # Azure DevOps pipeline to build, check source codes, run tests, and deploy.
 #
-# The following variables needs to be defined before running the deployment jobs 
-# defined in this pipeline:
+# To enable the check of source code with Danger JS you need to configure a valid
+# GitHub token by setting the following variable: 
+# - DANGER_GITHUB_API_TOKEN
+#
+# To enable the deployment in any environment you need to configure the following 
+# variable otherwise all the deployment jobs will be always skipped:
+#   - DO_DEPLOY = true
+# in case of a manual run, you also need to configure the following additional 
+# variables based on the environment to update:
+#   - STAGING_ENABLE_MANUAL_DEPLOY = true
+#   - PRODUCTION_ENABLE_MANUAL_DEPLOY = true
+#
+# The following variables are also used when running the deployment jobs:
 # - STAGING_DEPLOY_MODE: 'deploy_standard' || 'deploy_to_slots'
 # - STAGING_AZURE_SUBSCRIPTION
 # - STAGING_RESOURCE_GROUP_NAME
@@ -12,24 +23,17 @@
 # - PRODUCTION_RESOURCE_GROUP_NAME
 # - PRODUCTION_FUNCTION_APP_NAME
 #
-# To enable the deployment and define if using deployment slots you also need to 
-# configure these variables:
-# - DO_DEPLOY: if False or undefined all deployments are skipped
 
 variables:
   NODE_VERSION: '10.14.1'
 
 # This pipeline can be manually run or is automatically triggered whenever one 
-# of the following condition is true:
+# of the following conditions is true:
 # - a push is made to any branch in the repository (not only 'master')
 # - a pull request is created
 # - a tag named 'latest' is pushed
 # Note. In the last case, the tag can be (re-)created using the Git CLI, e.g.:
 #    git push -f origin <abfb967>:refs/tags/latest
-# To force the deployment regardless the above conditions you must configure the
-# following additional variables:
-# - STAGING_FORCE_DEPLOY: True
-# - PRODUCTION_FORCE_DEPLOY: True
 trigger:
   branches:
     include:
@@ -115,20 +119,29 @@ stages:
           displayName: 'Code coverage'
 
 
-  # C) Deploy to STAGE environment only if there is a push on 'master' branch.
-  # Other conditions based on variables settings:
-  # - if $DO_DEPLOY != True (or undefined) skip deployment, otherwise:
-  #   - c1) $STAGING_DEPLOY_MODE == deploy_standard: deploy to 'prodution' slot
-  #   - c2) $STAGING_DEPLOY_MODE == deploy_to_slots: deploy to 'staging' slot in PROD and 
-  #         then swap 'staging' slot with 'production' slot
+  # C) Deploy to STAGE environment if one of the following conditions apply:
+  #    - continuos deployment (automatic):
+  #       - $DO_DEPLOY == true and
+  #       - there is a push on 'master' branch 
+  #    - manual deployment:
+  #       - $DO_DEPLOY == true and
+  #       - $STAGING_ENABLE_MANUAL_DEPLOY == true
+  # The following alternative deployment modes are supported:
+  #   a) $STAGING_DEPLOY_MODE == 'deploy_standard': deploy to 'prodution' slot
+  #   b) $STAGING_DEPLOY_MODE == 'deploy_to_slots': deploy to 'staging' slot and
+  #      then swap 'staging' slot with 'production' slot
   - stage: Deploy_staging
-    condition: and(
+    condition: 
+      and(
         succeeded(),
         and (
-          eq(variables['DO_DEPLOY'], True),
+          eq(variables['DO_DEPLOY'], true),
           or(
             eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-            eq(variables['STAGING_FORCE_DEPLOY'], True)
+            and(
+              eq(variables['STAGING_ENABLE_MANUAL_DEPLOY'], true),
+              eq(variables['Build.Reason'], 'Manual')
+            )
           )
         )
       )
@@ -159,21 +172,29 @@ stages:
             appName: '$(STAGING_FUNCTION_APP_NAME)'
 
 
-  # D) Deploy to PRODUCTION environment only if the 'latest' tag is pushed.
-  # Other conditions based on variables settings:
-  # - if $DO_DEPLOY != True (or undefined) skip deployment, otherwise:
-  #   - c1) $PRODUCTION_DEPLOY_MODE == deploy_standard: deploy to 'prodution' slot
-  #   - c2) $PRODUCTION_DEPLOY_MODE == deploy_to_slots: deploy to 'staging' slot in PROD and 
-  #         then swap 'staging' slot with 'production' slot
+  # D) Deploy to PRODUCTION environment if one of the following conditions apply:
+  #    - continuos deployment (automatic):
+  #       - $DO_DEPLOY == true and
+  #       - the 'latest' tag is pushed 
+  #    - manual deployment:
+  #       - $DO_DEPLOY == true and
+  #       - $PRODUCTION_ENABLE_MANUAL_DEPLOY == true
+  # The following alternative deployment modes are supported:
+  #   a) $PRODUCTION_DEPLOY_MODE == 'deploy_standard': deploy to 'prodution' slot
+  #   b) $PRODUCTION_DEPLOY_MODE == 'deploy_to_slots': deploy to 'staging' slot and
+  #      then swap 'staging' slot with 'production' slot
   - stage: Deploy_production
-    condition: and(
+    condition: 
+      and(
         succeeded(),
         and (
-          eq(variables['DO_DEPLOY'], True),
+          eq(variables['DO_DEPLOY'], true),
           or(
             eq(variables['Build.SourceBranch'], 'refs/tags/latest'),
-            eq(variables['PRODUCTION_FORCE_DEPLOY'], True),
-            eq(variables['Build.Reason'], 'Manual')
+            and(
+              eq(variables['PRODUCTION_ENABLE_MANUAL_DEPLOY'], true),
+              eq(variables['Build.Reason'], 'Manual')
+            )
           )
         )
       )
