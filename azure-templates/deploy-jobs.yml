@@ -24,7 +24,7 @@ parameters:
 jobs:
   # Option 1: deploy directly to 'production' slot
   - job: deploy_standard
-    condition: and(succeeded(), eq(${{ parameters.deployType }}, 'deploy_standard'))
+    condition: and(succeeded(), eq(${{ parameters.deployMode }}, 'deploy_standard'))
     steps:
     - template: ./deploy-steps.yml
       parameters:
