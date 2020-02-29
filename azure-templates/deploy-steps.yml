@@ -31,8 +31,8 @@ steps:
   parameters:
     archiveFileName: ${{ parameters.archiveFileName }}
 
+# Option 1: standard deployment without slots (i.e. deploy directly to main slot)
 - ${{ if eq(parameters.deployType, 'deployToProductionSlot') }}:
-  # Option 1: standard deployment without slots (i.e. deploy directly to main slot)
   - task: AzureFunctionApp@1
     inputs:
       azureSubscription: '${{ parameters.azureSubscription }}'
@@ -43,8 +43,8 @@ steps:
       deploymentMethod: 'auto'
     displayName: Standard deploy
 
+# Option 2: deployment to 'staging' slot only
 - ${{ if eq(parameters.deployType, 'deployToStagingSlot') }}:
-  # Option 2: deployment to 'staging' slot only
   - task: AzureFunctionApp@1
     inputs:
       azureSubscription: '${{ parameters.azureSubscription }}'
@@ -57,10 +57,9 @@ steps:
       slotName: 'staging'
     displayName: Deploy to staging slot only
 
+# Option 3: deployment with two slots ('staging' and 'production')
 - ${{ if eq(parameters.deployType, 'deployToStagingSlotAndSwap') }}:
-  # Option 3: deployment with two slots ('staging' and 'production')
-  # First step: deploy to 'staging' slot 
-  - task: AzureFunctionApp@1
+  - task: AzureFunctionApp@1  # First step: deploy to 'staging' slot 
     inputs:
       azureSubscription: '${{ parameters.azureSubscription }}'
       resourceGroupName: '${{ parameters.resourceGroupName }}'
@@ -72,8 +71,7 @@ steps:
       slotName: 'staging'
     displayName: Deploy to staging slot
     
-  # Second step: swap 'staging' with 'production' slot
-  - task: AzureAppServiceManage@0
+  - task: AzureAppServiceManage@0   # Second step: swap 'staging' with 'production' slot
     inputs:
       azureSubscription: '${{ parameters.azureSubscription }}'
       resourceGroupName: '${{ parameters.resourceGroupName }}'
