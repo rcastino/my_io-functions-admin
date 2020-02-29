@@ -19,9 +19,9 @@ steps:
       
 - task: Cache@2
   inputs:_only
-    key: 'yarn | "${{ parameters.agentOS }}" | yarn.lock'
+    key: 'yarn | "windows-2019" | yarn.lock'
     restoreKeys: |
-      yarn | "${{ parameters.agentOS }}"
+      yarn | "windows-2019"
       yarn
     path: $(Pipeline.Workspace)/.yarn
   displayName: Cache yarn packages
