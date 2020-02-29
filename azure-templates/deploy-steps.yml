@@ -31,7 +31,7 @@ steps:
     echo 'azureSubscription: ${{ parameters.azureSubscription }}'
   displayName: 'ECHO'
   
-- ${{ if eq(parameters.deployType, 'deployToProductionSlot') }}:
+- ${{ if eq(parameters.deployType, '$(STAGING_DEPLOY_TYPE)') }}:
   - bash: |
       echo 'deployType: ${{ parameters.deployType }}'
       echo 'azureSubscription: ${{ parameters.azureSubscription }}'
