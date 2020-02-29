@@ -1,10 +1,5 @@
 # Azure DevOps template used to perform all the steps to make the package to deploy. 
 
-parameters:
-- name: 'zipFileName'
-  default: package.zip
-  type: string
-  
 steps:
 - template: ./make-build-steps.yml
   parameters:
@@ -26,12 +21,4 @@ steps:
       !local.settings.json
       !test
       !tsconfig.json
-  displayName: 'Copy deploy files' 
-
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
-    includeRootFolder: false
-    archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/${{ parameters.zipFileName }}'
-  displayName: 'Make deployment zip'
+  displayName: 'Copy deploy files'
