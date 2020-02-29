@@ -8,10 +8,7 @@ parameters:
 - name: 'deployType'
   type: string
   default: deployToProductionSlot
-  values:
-  - deployToProductionSlot
-  - deployToStagingSlot
-  - deployToStagingSlotAndSwap
+
 
 - name: 'archiveFileName'
   type: string
