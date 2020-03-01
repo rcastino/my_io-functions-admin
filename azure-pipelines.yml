@@ -6,11 +6,11 @@
 #
 # To enable the deployment in any environment you need to configure the following 
 # variable otherwise all the deployment jobs will be always skipped:
-#   - DO_DEPLOY = true
+# - DO_DEPLOY = true
 # in case of a manual run, you also need to configure the following additional 
 # variables based on the environment to update:
-#   - STAGING_ENABLE_MANUAL_DEPLOY = true
-#   - PRODUCTION_ENABLE_MANUAL_DEPLOY = true
+# - STAGING_ENABLE_MANUAL_DEPLOY = true
+# - PRODUCTION_ENABLE_MANUAL_DEPLOY = true
 #
 # The following variables are also used when running the deployment jobs:
 # - STAGING_DEPLOY_MODE: 'deploy_standard' || 'deploy_to_slots'
