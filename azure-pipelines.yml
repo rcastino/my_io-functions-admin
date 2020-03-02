@@ -28,6 +28,13 @@ variables:
   NODE_VERSION: '10.14.1'
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
 
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: my_devops_project/GitHub_public_repo_connection
+
+
 # This pipeline can be manually run or is automatically triggered whenever one 
 # of the following conditions is true:
 # - a push is made to any branch in the repository (not only 'master')
