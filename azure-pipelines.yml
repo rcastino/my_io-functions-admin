@@ -28,11 +28,6 @@ variables:
   NODE_VERSION: '10.14.1'
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
 
-resources:
-  repositories:
-    - repository: templates
-      type: git
-      name: my_devops_project/GitHub_public_repo_connection
 
 
 # This pipeline can be manually run or is automatically triggered whenever one 
@@ -63,11 +58,22 @@ stages:
       # A1) Checkout, install module and build code
       - job: make_build      
         steps:
-        - template: azure-templates/make-build-steps.yml
+        - task: DownloadGitHubRelease@0
+          inputs:
+            connection: 'GitHub_public_repo_connection'
+            userRepository: 'rcastino/mygitdevops'
+            defaultVersionType: 'latest'
+            itemPattern: 'azure-templates/**'
+            downloadPath: '$(System.ArtifactsDirectory)/azure-templates'
+
+        # ORIG OK: template: azure-templates/make-build-steps.yml
+        - template: $(System.ArtifactsDirectory)/azure-templates/make-build-steps.yml
           parameters:
             make: build
             
         - script: |
+            echo '$(System.ArtifactsDirectory)/azure-templates: '
+            ls $(System.ArtifactsDirectory)/azure-templates
             echo 'yarn cache dir:'
             yarn cache dir
             echo 'YARN_CACHE_FOLDER:'
