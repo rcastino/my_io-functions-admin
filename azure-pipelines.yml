@@ -59,6 +59,10 @@ stages:
           parameters:
             make: build
             
+        - script: |
+            yarn cache dir
+          displayName: 'cache dir'
+
       # A2) Analyze source code to find errors with lint
       - job: lint
         steps:
