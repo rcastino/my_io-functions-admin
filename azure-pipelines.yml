@@ -26,6 +26,7 @@
 
 variables:
   NODE_VERSION: '10.14.1'
+  YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
 
 # This pipeline can be manually run or is automatically triggered whenever one 
 # of the following conditions is true:
@@ -60,7 +61,12 @@ stages:
             make: build
             
         - script: |
+            echo 'yarn cache dir:'
             yarn cache dir
+            echo 'YARN_CACHE_FOLDER:'
+            ls $(YARN_CACHE_FOLDER)
+            echo 'Pipeline.Workspace)/.yarn:'
+            ls $(Pipeline.Workspace)/.yarn
           displayName: 'cache dir'
 
       # A2) Analyze source code to find errors with lint
