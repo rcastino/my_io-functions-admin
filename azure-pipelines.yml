@@ -119,7 +119,7 @@ stages:
           displayName: 'Code coverage'
 
 
-  # C) Deploy to STAGE environment if one of the following conditions apply:
+  # C) Deploy to STAGE environment if the following conditions apply:
   #    - continuos deployment (automatic):
   #       - $DO_DEPLOY == true and
   #       - there is a push on 'master' branch 
