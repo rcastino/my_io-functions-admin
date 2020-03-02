@@ -67,7 +67,7 @@ stages:
             downloadPath: '$(System.ArtifactsDirectory)/azure-templates'
 
         # ORIG OK: template: azure-templates/make-build-steps.yml
-        - template: $(System.ArtifactsDirectory)/azure-templates/make-build-steps.yml
+        - template: $(System.ArtifactsDirectory)/azure-templates/mytemplate.yml
           parameters:
             make: build
             
