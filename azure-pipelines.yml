@@ -28,6 +28,12 @@ variables:
   NODE_VERSION: '10.14.1'
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
 
+parameters:
+  - name: 'PUBLISH_RELEASE'
+    displayName: 'Publish new release'
+    type: boolean
+    default: False
+
 resources:
   repositories:
   - repository: 'myrepo'
