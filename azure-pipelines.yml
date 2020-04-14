@@ -29,7 +29,7 @@ variables:
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
 
 parameters:
-  - name: PUBLISH_RELEASE
+  - name: A
 
 resources:
   repositories:
