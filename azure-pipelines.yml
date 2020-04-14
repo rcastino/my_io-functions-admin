@@ -30,8 +30,6 @@ variables:
 
 parameters:
   - name: PUBLISH_RELEASE
-    type: boolean
-    default: False
 
 resources:
   repositories:
