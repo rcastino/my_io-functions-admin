@@ -29,8 +29,7 @@ variables:
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
 
 parameters:
-  - name: 'PUBLISH_RELEASE'
-    displayName: 'Publish new release'
+  - name: PUBLISH_RELEASE
     type: boolean
     default: False
 
